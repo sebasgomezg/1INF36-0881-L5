@@ -2,7 +2,7 @@
 
 Aplicación del curso 1INF36 Ética y RSU, PUCP, para reportar problemas del campus, confirmar incidentes y consultar su atención. Conserva la interfaz del prototipo: colores, tipografías, tarjetas, filtros, formulario, fotografías, modales, Gestión y tema oscuro.
 
-URL de GitHub Pages: **https://sebasgomezg.github.io/1INF36-0881-L5/**. Estado de publicación y comprobaciones en [PRUEBAS.md](PRUEBAS.md).
+URL de GitHub Pages: **https://sebasgomezg.github.io/1INF36-0881-L5/**. **Sitio activo, conectado a Firebase real y comprobado desde la URL pública.** Evidencia en [PRUEBAS.md](PRUEBAS.md).
 
 ## Arquitectura y producción
 

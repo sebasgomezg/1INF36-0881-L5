@@ -4,7 +4,7 @@
 
 - npm test: **13/13** correctas en esta ejecución (plantillas, consentimiento del borrador manual, restauración de sesiones, inicialización única, guardas de entornos, rutas, CSS/controles y validaciones).
 - npm run test:rules: **8/8** correctas en esta ejecución. Pruebas positivas y negativas mediante SDK cliente sujeto a reglas: privados/fotos/contactos, votos y contador, roles, estados/historial, aprobación/retiro/restauración y reintentos.
-- Las pruebas de core (5) e integración (1) se verificaron en la migración y se repiten antes de cerrar esta publicación. No se presentan mocks como correos enviados.
+- npm run test:core: **5/5**, y npm run test:integration: **1/1**, repetidas satisfactoriamente en esta ejecución. Total: **27 pruebas automatizadas correctas**. No se presentan mocks como correos enviados.
 - La migración original también verificó 10 grupos de comprobaciones de navegador con emuladores; la versión de producción añade las pruebas reales indicadas abajo.
 
 ## Firebase real desde localhost
@@ -35,8 +35,16 @@ Un servidor local de una previsualización anterior seguía sirviendo la configu
 
 ## GitHub Pages
 
-URL de destino: https://sebasgomezg.github.io/1INF36-0881-L5/. Publicación y verificación pública pendientes de la siguiente etapa; no se confunden los resultados locales con la comprobación de Pages.
+**Publicado y verificado:** https://sebasgomezg.github.io/1INF36-0881-L5/. GitHub Pages activo, HTTPS y HTTP 200, fuente main/docs y build correcto. Los mismos **11 grupos completos se repitieron desde la URL pública**, con dos contextos de estudiante independientes y un tercero administrativo, contra Firebase real y sin emuladores. Incluyen fotos, SDK, pestañas, filtros, estadísticas, seguridad, conservación de sesión, expediente retirado, contacto manual, persistencia compartida, aprobación/descarte/estado/respuesta/historial, retiro/restauración, logout y limpieza.
+
+Se reforzó la prueba para comprobar que un reporte aprobado desaparezca también de la lista privada de su autor y que no aparezca un falso aviso de permisos. Esta regresión falló antes de corregir el listener y pasó tras el cambio. La causa era una suscripción privada creada a partir de la escritura local anticipada de autores, antes de que el servidor pudiera autorizar al propietario. Ahora se usan snapshots confirmados, con cambios de metadatos, antes de abrir esos listeners. Las reglas no se modificaron para ocultar el error. La captura final de escritorio se revisó para confirmar que desapareció el aviso.
+
+Resultados locales: test-results/production-public-results.json y capturas public-mobile.png/public-desktop.png, inspeccionadas visualmente. Ningún error JavaScript no capturado. Los datos PRUEBA TÉCNICA se eliminaron después de las pruebas; la cuenta administrativa permanece operativa. No se alteraron datos preexistentes.
 
 ## Límites
 
 Windows, Node 24.13.1, Java 24.0.2, CLI 15.34.1, Firestore Emulator 1.22.0, Firebase JS Compat 12.13.0, Admin 14.5.0, Functions 7.4.0 y Chromium 141. Las funciones declaran Node 22, pero no se desplegaron. Los avisos manuales no prueban envío ni entrega; Functions/Resend solo tienen pruebas locales simuladas. No se activó Analytics, Storage, Hosting de Firebase ni facturación.
+
+## Versiones publicadas
+
+Rama main, commit inicial de aplicación 5cd0c61 y corrección del listener e5b75b4, ambos enviados a origin. El commit de cierre actualiza únicamente la evidencia de publicación y los pendientes. Las credenciales .admin-credential.local, copias de reglas y capturas no están versionadas.

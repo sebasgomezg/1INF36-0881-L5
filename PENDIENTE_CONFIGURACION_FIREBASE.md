@@ -12,9 +12,15 @@
 - Flujos con Firebase real desde servidor local: dos estudiantes independientes, persistencia/recarga, fotos, votos, negativos de seguridad, login administrativo persistente, aprobación, respuesta, historial, retiro/restauración, descarte, borrador de correo manual y limpieza de los datos técnicos creados.
 - Preparación de Pages desde main/docs, rutas relativas y .nojekyll.
 
-## Publicación en curso
+## Publicación completada y verificada
 
-- Commit/push, activación de Pages y comprobación desde la URL pública: actualizar este estado al completar la verificación.
+- Commits y push a origin/main realizados; Pages activo desde main/docs.
+- URL pública: https://sebasgomezg.github.io/1INF36-0881-L5/; HTTPS y respuesta 200.
+- Once grupos de pruebas reales desde Pages correctos: dos estudiantes independientes, administrador, reglas, imágenes, persistencia/recarga, votos, privados, moderación, historial, retiro/restauración y logout.
+- Corregida y verificada la carrera de suscripción privada al registrar reportes. No hay que reducir permisos para que funcione.
+- Datos técnicos de ensayo limpiados; sin secretos administrativos versionados.
+
+No hay bloqueos de permisos ni pasos de configuración pendientes para usar el sitio. La contraseña del administrador está únicamente en el archivo local privado .admin-credential.local.
 
 ## Limitaciones de Spark
 
