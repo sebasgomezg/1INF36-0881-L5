@@ -1,0 +1,185 @@
+<!doctype html><html lang="es"><head><link rel="stylesheet" href="./css/styles.css"><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"></head><body>
+<title>Avisa Campus</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..100,500..800&family=Public+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap">
+
+
+<div class="tape" aria-hidden="true"></div>
+<header class="top">
+  <div class="wrap">
+    <div class="brand">
+      <div class="brand-mark" aria-hidden="true">!</div>
+      <div><h1>Avisa Campus</h1><small>Registro de incidentes del campus</small></div>
+    </div>
+    <nav class="tabs" aria-label="Secciones">
+      <a href="#incidentes" data-view="incidentes">Incidentes</a>
+      <a href="#reportar" data-view="reportar" class="cta">Reportar</a>
+      <a href="#como-funciona" data-view="como-funciona">Cómo funciona</a>
+      <a href="#gestion" data-view="gestion" id="tab-gestion">Gestión</a>
+    </nav>
+    <span class="badge-admin" id="badge-admin" hidden>Administrador</span>
+  </div>
+</header>
+
+<main class="wrap">
+  <div id="banner"></div>
+
+  <!-- VISTA: INCIDENTES -->
+  <section id="view-incidentes" data-section>
+    <div class="intro">
+      <div>
+        <h2>Quejarse no arregla un bache. Avisar, sí.</h2>
+        <p>Reporta lo que está malogrado en el campus, confirma lo que otros ya vieron y sigue qué respuesta se dio. Tu nombre no se publica.</p>
+      </div>
+      <div class="stats" aria-label="Resumen">
+        <div class="stat"><b id="s-total">0</b><span>Reportados</span></div>
+        <div class="stat"><b id="s-abiertos">0</b><span>Abiertos</span></div>
+        <div class="stat"><b id="s-resueltos">0</b><span>Resueltos</span></div>
+      </div>
+    </div>
+
+    <div class="toolbar">
+      <div class="field-inline"><label for="f-orden">Orden</label>
+        <select id="f-orden"><option value="prioridad">Más confirmados</option><option value="recientes">Más recientes</option></select></div>
+      <div class="field-inline"><label for="f-estado">Estado</label>
+        <select id="f-estado"><option value="abiertos">Abiertos</option><option value="todos">Todos</option><option value="reportado">Reportado</option><option value="revisando">En revisión</option><option value="en_atencion">En atención</option><option value="resuelto">Resuelto</option><option value="descartado">Descartado</option></select></div>
+      <div class="field-inline"><label for="f-cat">Tipo</label>
+        <select id="f-cat"><option value="todos">Todos</option></select></div>
+      <span class="count" id="count"></span>
+    </div>
+    <div id="list" class="list"></div>
+  </section>
+
+  <!-- VISTA: REPORTAR -->
+  <section id="view-reportar" data-section hidden>
+    <div class="form-grid">
+      <form class="panel" id="form" novalidate>
+        <h2>Reportar un incidente</h2>
+        <p class="sub">Tu reporte se publica sin tu nombre. Antes de crear uno nuevo, revisa si ya existe y confírmalo.</p>
+
+        <div class="f"><label for="r-titulo">¿Qué pasa?</label>
+          <input type="text" id="r-titulo" maxlength="80" placeholder="Ej.: Tomacorriente sin energía junto a la ventana">
+          <span class="hint">Una frase corta. Máximo 80 caracteres.</span></div>
+
+        <div class="row2">
+          <div class="f"><label for="r-cat">Tipo</label><select id="r-cat"></select></div>
+          <div class="f"><label for="r-zona">Zona</label><select id="r-zona"></select></div>
+        </div>
+
+        <div class="f"><label for="r-lugar">Lugar exacto</label>
+          <input type="text" id="r-lugar" maxlength="80" placeholder="Ej.: Salón V-204, segunda fila">
+        </div>
+
+        <div class="f"><label for="r-desc">Detalle <span class="hint">(opcional)</span></label>
+          <textarea id="r-desc" maxlength="600" placeholder="Desde cuándo pasa, a quién afecta, si es peligroso."></textarea></div>
+
+        <div class="f"><span class="lbl">Foto</span>
+          <div class="photo-drop">
+            <img id="r-preview" alt="Vista previa de la foto" hidden>
+            <div style="display:grid;gap:6px;min-width:0">
+              <input type="file" id="r-foto" accept="image/*" aria-label="Elegir foto">
+              <span class="hint">Sin rostros, placas ni pantallas con datos de otras personas.</span>
+            </div>
+          </div></div>
+
+        <label class="check"><input type="checkbox" id="r-norostros"><span><b>La foto y el texto no identifican a ninguna persona.</b> Ni rostros, ni nombres, ni datos personales de terceros.</span></label>
+        <label class="check"><input type="checkbox" id="r-persona"><span><b>Mi reporte se refiere a la conducta de una persona.</b> Se guarda oculto y solo lo ve la administración hasta revisarlo.</span></label>
+
+        <div class="f" style="margin-top:6px"><label for="r-correo">Correo para contacto manual al cerrar el caso <span class="hint">(opcional)</span></label>
+          <input type="email" id="r-correo" maxlength="120" placeholder="tu.correo@pucp.edu.pe" autocomplete="email">
+          <span class="hint">Nunca se muestra en la página. Solo lo ve la administración.</span><span class="hint" id="email-status" role="status"></span></div>
+        <label class="check" id="consent-row" hidden><input type="checkbox" id="r-consent"><span>Autorizo el uso de mi correo <b>solo</b> para avisarme sobre este incidente. El aviso es manual. La administración elimina el contacto después del envío o a más tardar en 30 días; no se envían avisos automáticos. Ver <a href="#como-funciona">aviso de privacidad</a>.</span></label>
+
+        <p class="err" id="r-err" role="alert"></p>
+        <button class="btn signal" type="submit" id="r-submit">Enviar reporte</button>
+      </form>
+
+      <aside class="side">
+        <div class="panel warn">
+          <h3>Este canal no es para denuncias de hostigamiento</h3>
+          <p style="margin:0;color:var(--muted);font-size:14px">Para hostigamiento o violencia usa los canales oficiales de la universidad, que tienen protocolos y confidencialidad propios.</p>
+        </div>
+        <div class="panel">
+          <h3>Un buen reporte</h3>
+          <ul>
+            <li>Dice dónde está el problema con precisión: pabellón, piso, salón.</li>
+            <li>Muestra el problema en la foto, no a las personas.</li>
+            <li>Describe el riesgo: un cable pelado no es lo mismo que una silla floja.</li>
+            <li>No repite uno que ya existe. Si ya está, confírmalo.</li>
+          </ul>
+        </div>
+        <div class="panel" id="mis-revision" hidden>
+          <h3>Tus reportes en revisión</h3>
+          <ul id="mis-revision-list"></ul>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  <!-- VISTA: CÓMO FUNCIONA -->
+  <section id="view-como-funciona" data-section hidden>
+    <div class="prose">
+      <h2>Cómo funciona</h2>
+      <p class="muted">Los problemas del campus se comentan entre amigos y no llegan a quien puede resolverlos. Avisa Campus deja cada incidente registrado, visible y con su respuesta.</p>
+      <div class="steps">
+        <div class="step"><span class="n">Paso 1</span><h4>Reportas</h4><p>Con foto, zona y lugar exacto. Sin nombre.</p></div>
+        <div class="step"><span class="n">Paso 2</span><h4>Otros confirman</h4><p>Cada confirmación sube la prioridad del incidente.</p></div>
+        <div class="step"><span class="n">Paso 3</span><h4>Se atiende</h4><p>La administración cambia el estado y publica qué se hizo.</p></div>
+        <div class="step"><span class="n">Paso 4</span><h4>Queda registro</h4><p>Cualquiera puede ver el historial y la respuesta.</p></div>
+      </div>
+
+      <h3>Estados de un incidente</h3>
+      <p><span class="pill st-reportado">Reportado</span> recién registrado · <span class="pill st-revisando">En revisión</span> la administración lo está evaluando · <span class="pill st-en_atencion">En atención</span> hay una acción en curso · <span class="pill st-resuelto">Resuelto</span> se solucionó · <span class="pill st-descartado">Descartado</span> no procede, con la razón publicada.</p>
+
+      <h3>Aviso de privacidad</h3>
+      <p class="muted">Se recoge lo mínimo necesario. Una identidad anónima del navegador vincula reportes y confirmaciones. Puede cambiar si borras los datos del navegador o usas otro dispositivo. No se promete anonimato absoluto.</p>
+      <div class="tbl"><table class="priv">
+        <tr><th>Dato</th><th>Para qué</th><th>Quién lo ve</th></tr>
+        <tr><td>Foto, zona, lugar, detalle y fecha</td><td>Registrar y atender el incidente</td><td>Público</td></tr>
+        <tr><td>Tus confirmaciones</td><td>Evitar que una persona confirme dos veces</td><td>Nadie ve quién confirmó; solo se muestra el total</td></tr>
+        <tr><td>Correo (opcional, con tu consentimiento)</td><td>Avisarte cuando el caso se cierre</td><td>Solo la administración. Aviso manual; eliminación después del envío o en un máximo de 30 días por la administración</td></tr>
+        <tr><td>Nombre, código o DNI</td><td>No se piden</td><td>Nadie</td></tr>
+      </table></div>
+      <p class="muted">Los reportes sobre la conducta de una persona no se publican: quedan ocultos y solo la administración los revisa. Si algo publicado identifica a alguien, la administración lo retira de la vista pública.</p>
+
+      <h3>Qué no es este canal</h3>
+      <p>No es un canal de denuncias de hostigamiento o violencia. Para eso existen los canales oficiales de la universidad. Tampoco es un formulario cerrado: lo que se reporta y lo que se responde queda a la vista de todos.</p>
+    </div>
+  </section>
+
+  <!-- VISTA: GESTIÓN -->
+  <section id="view-gestion" data-section hidden>
+    <h2 style="font-size:28px">Gestión</h2>
+    <form class="panel" id="admin-login">
+      <h3>Acceso administrativo</h3>
+      <div class="f"><label for="admin-email">Correo</label><input id="admin-email" type="email" autocomplete="username" required></div>
+      <div class="f"><label for="admin-password">Contraseña</label><input id="admin-password" type="password" autocomplete="current-password" required></div>
+      <p class="err" id="admin-error" role="alert"></p><button class="btn" id="login-submit">Iniciar sesión</button>
+    </form>
+    <button class="btn ghost" id="logout" type="button" hidden>Cerrar sesión</button>
+    <div id="admin-content" hidden>
+    <p style="color:var(--muted);margin:6px 0 0">Solo visible para la administración. Abre cualquier incidente desde la lista para cambiar su estado o responder.</p>
+    <h3 class="sec-title">Reportes en revisión <span class="code" id="rev-count"></span></h3>
+    <div id="rev-list" class="admin-grid"></div>
+    <h3 class="sec-title">Retirados de la vista pública <span class="code" id="arch-count"></span></h3>
+    <div id="arch-list" class="admin-grid"></div>
+    <h3 class="sec-title">Notificaciones</h3><p class="meta">Aceptada por el proveedor no significa entregada. Las pruebas locales se marcan SIMULADAS.</p>
+    <div id="notifications" class="admin-grid"></div></div>
+  </section>
+</main>
+
+<footer class="credits">
+  <div class="wrap">
+    <span><b>Avisa Campus</b> · Proyecto del curso 1INF36 Ética y RSU en Ingeniería Informática, 2026-2</span>
+    <span>Equipo: <b id="equipo"></b></span>
+  </div>
+</footer>
+
+<div id="modal-root"></div>
+<div id="toast-root"></div>
+
+<script src="./js/firebase-config.js"></script>
+<script type="module" src="./js/app.js"></script>
+
+</body></html>

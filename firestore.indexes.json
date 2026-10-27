@@ -1,0 +1,10 @@
+{
+  "indexes": [],
+  "fieldOverrides": [
+    { "collectionGroup": "votos", "fieldPath": "incidente", "indexes": [ { "order": "ASCENDING", "queryScope": "COLLECTION" }, { "order": "ASCENDING", "queryScope": "COLLECTION_GROUP" } ] },
+    { "collectionGroup": "fotos", "fieldPath": "data", "indexes": [] },
+    { "collectionGroup": "incidentes", "fieldPath": "mini", "indexes": [] },
+    { "collectionGroup": "incidentes", "fieldPath": "descripcion", "indexes": [] },
+    { "collectionGroup": "incidentes", "fieldPath": "respuesta", "indexes": [] }
+  ]
+}

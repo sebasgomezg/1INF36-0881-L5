@@ -1,0 +1,65 @@
+import { test, after } from 'node:test';
+import assert from 'node:assert/strict';
+import { initializeApp as adminApp, deleteApp as deleteAdmin } from 'firebase-admin/app';
+import { getFirestore as adminFirestore } from 'firebase-admin/firestore';
+import { getAuth as adminAuth } from 'firebase-admin/auth';
+import { createRequire } from 'node:module';
+const require=createRequire(import.meta.url);
+const firebase=require('firebase/compat/app');
+require('firebase/compat/firestore');
+const authSDK=require('firebase/auth');
+import { randomBytes } from 'node:crypto';
+import { CampusService } from '../docs/js/firestore-service.js';
+if(!process.env.FIRESTORE_EMULATOR_HOST||!process.env.FIREBASE_AUTH_EMULATOR_HOST)throw Error('Solo ejecutar con emuladores');
+const projectId='demo-avisa-campus', admin=adminApp({projectId},'integration-admin'), db=adminFirestore(admin);
+globalThis.window={firebase};
+const apps=[];
+function client(name){
+  const app=firebase.initializeApp({projectId,apiKey:'demo-key',appId:'demo-app'},name);apps.push(app);
+  const session=authSDK.initializeAuth(app._delegate,{persistence:authSDK.inMemoryPersistence});
+  authSDK.connectAuthEmulator(session,'http://127.0.0.1:9099',{disableWarnings:true});
+  const auth={ get currentUser(){return session.currentUser;}, signInAnonymously:()=>authSDK.signInAnonymously(session), signInWithEmailAndPassword:(e,p)=>authSDK.signInWithEmailAndPassword(session,e,p) };
+  const db=app.firestore();db.useEmulator('127.0.0.1',8080);return {app,auth,db};
+}
+async function until(fn){for(let i=0;i<120;i++){const result=await fn();if(result)return result;await new Promise(r=>setTimeout(r,250));}throw Error('Tiempo agotado esperando Cloud Function');}
+after(async()=>{await Promise.all(apps.map(a=>a.delete()));await deleteAdmin(admin);});
+test('flujo real de emuladores: Auth, dos clientes, voto, moderación, correo simulado y limpieza',async()=>{
+  const a=client('student-a'),b=client('student-b'),manager=client('manager');
+  await a.auth.signInAnonymously();await b.auth.signInAnonymously();
+  assert.ok(a.auth.currentUser.isAnonymous);
+  const sa=new CampusService(a.db,a.auth.currentUser.uid),sb=new CampusService(b.db,b.auth.currentUser.uid);
+  const input={titulo:'Luz malograda integración',categoria:'Infraestructura',zona:'Pabellón V',lugar:'V204',descripcion:'Caso ficticio',mini:null};
+  const {id}=await sa.create(input,null,'ficticio@campus.test',true,false);
+  const seen=await new Promise((resolve,reject)=>{const off=b.db.doc('incidentes/'+id).onSnapshot(s=>{if(s.exists){off();resolve(s.data());}},reject);});
+  assert.equal(seen.titulo,input.titulo);
+  await sb.vote(id);assert.equal((await a.db.doc('incidentes/'+id).get()).data().confirmaciones,1);
+  const password=randomBytes(18).toString('base64url'),email=`admin-${id}@campus.test`;
+  const adminUser=await adminAuth(admin).createUser({email,password});
+  await db.doc('admins/'+adminUser.uid).set({habilitado:true});
+  await manager.auth.signInWithEmailAndPassword(email,password);
+  assert.ok(!manager.auth.currentUser.isAnonymous);
+  const sm=new CampusService(manager.db,adminUser.uid);
+  await sm.manage(id,{estado:'resuelto',respuesta:'Luz reparada, prueba local.'},'actualizar');
+  const key=id+'-1';
+  const notification=await until(async()=>{const n=await db.doc('notificaciones/'+key).get();return n.exists&&n.data().estado==='simulada'?n.data():null;});
+  assert.equal(notification.proveedorId,'SIMULADO-avisa-'+key);
+  assert.equal(notification.entrega,'no_confirmada');assert.equal(notification.intentos,1);
+  assert.equal((await db.doc('contactos/'+id).get()).exists,false);
+  // Editar la respuesta en el mismo estado no crea una segunda notificación.
+  await sm.manage(id,{respuesta:'Completado, versión dos.'},'actualizar');
+  assert.equal((await db.collection('notificaciones').where('incidente','==',id).get()).size,1);
+  const photo='data:image/jpeg;base64,AAAA';
+  const privateResult=await sa.create({...input,mini:photo},photo,'',false,true);
+  await assert.rejects(b.db.doc('fotos/'+privateResult.id).get());
+  await sm.manage(privateResult.id,{visibilidad:'publico'},'aprobar');
+  assert.equal((await b.db.doc('fotos/'+privateResult.id).get()).data().data,photo);
+  await sm.manage(privateResult.id,{visibilidad:'archivo'},'retirar');
+  await sm.deleteArchived(privateResult.id);
+  for(const c of ['autores','contactos','fotos','eliminaciones'])assert.equal((await db.doc(c+'/'+privateResult.id).get()).exists,false);
+  assert.equal((await db.collection('incidentes/'+privateResult.id+'/historial').get()).size,0);
+  await sm.manage(id,{visibilidad:'archivo'},'retirar');
+  await sm.deleteArchived(id);
+  assert.equal((await db.doc(`usuarios/${b.auth.currentUser.uid}/votos/${id}`).get()).exists,false);
+  assert.equal((await db.doc('notificaciones/'+key).get()).exists,false);
+  assert.equal((await db.doc('incidentes/'+id).get()).exists,false);
+});

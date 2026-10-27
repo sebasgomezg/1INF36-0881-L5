@@ -1,0 +1,695 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Avisa Campus</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..100,500..800&family=Public+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* Layout: barra de señalética arriba, franja de cifras, lista de tarjetas de incidente; formulario y gestión como vistas por pestaña */
+:root{
+  --bg:#eef0f3; --surface:#ffffff; --surface-2:#f6f7f9; --fg:#18202e; --muted:#5b6575; --line:#d9dde4;
+  --signal:#f2b705; --signal-ink:#1b1606; --accent:#1f4fd1; --accent-ink:#ffffff;
+  --st-rep:#6b7380; --st-rev:#2459d6; --st-ate:#b86e00; --st-res:#16794a; --st-des:#8a8f99;
+  --st-rep-bg:#eceef2; --st-rev-bg:#e3ebfd; --st-ate-bg:#fdf0d8; --st-res-bg:#dff3e8; --st-des-bg:#efeff1;
+  --danger:#b42318; --shadow:0 1px 2px rgba(20,30,50,.06),0 4px 14px rgba(20,30,50,.06);
+  --f-display:"Archivo","Arial Narrow",system-ui,sans-serif;
+  --f-body:"Public Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#10141c; --surface:#181e2a; --surface-2:#1e2533; --fg:#e7eaf0; --muted:#9aa3b2; --line:#2b3344;
+  --signal:#f2b705; --signal-ink:#1b1606; --accent:#7ea2ff; --accent-ink:#0d1220;
+  --st-rep:#a3abb8; --st-rev:#8db0ff; --st-ate:#f0b54d; --st-res:#5fd19a; --st-des:#7d8494;
+  --st-rep-bg:#252c3a; --st-rev-bg:#1d2a4a; --st-ate-bg:#3a2c12; --st-res-bg:#15342a; --st-des-bg:#232836;
+  --danger:#ff7b6e; --shadow:0 1px 2px rgba(0,0,0,.3); color-scheme:dark;}}
+:root[data-theme="dark"]{
+  --bg:#10141c; --surface:#181e2a; --surface-2:#1e2533; --fg:#e7eaf0; --muted:#9aa3b2; --line:#2b3344;
+  --signal:#f2b705; --signal-ink:#1b1606; --accent:#7ea2ff; --accent-ink:#0d1220;
+  --st-rep:#a3abb8; --st-rev:#8db0ff; --st-ate:#f0b54d; --st-res:#5fd19a; --st-des:#7d8494;
+  --st-rep-bg:#252c3a; --st-rev-bg:#1d2a4a; --st-ate-bg:#3a2c12; --st-res-bg:#15342a; --st-des-bg:#232836;
+  --danger:#ff7b6e; --shadow:0 1px 2px rgba(0,0,0,.3); color-scheme:dark;}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15px;line-height:1.5}
+.wrap{max-width:1080px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+h1,h2,h3{font-family:var(--f-display);font-stretch:85%;text-wrap:balance;margin:0;line-height:1.1}
+
+/* Cabecera */
+.tape{height:8px;background:repeating-linear-gradient(-45deg,var(--signal) 0 14px,var(--signal-ink) 14px 28px)}
+header.top{background:var(--surface);border-bottom:1px solid var(--line)}
+.top .wrap{display:flex;flex-wrap:wrap;align-items:center;gap:12px 24px;padding-block:14px}
+.brand{display:flex;align-items:center;gap:10px;margin-right:auto}
+.brand-mark{width:34px;height:34px;border-radius:8px;background:var(--signal);color:var(--signal-ink);display:grid;place-items:center;font-family:var(--f-display);font-weight:800;font-size:20px}
+.brand h1{font-size:24px;font-weight:800;letter-spacing:-.01em}
+.brand small{display:block;color:var(--muted);font-size:12px;font-family:var(--f-body);font-stretch:100%;font-weight:500}
+nav.tabs{display:flex;gap:4px;flex-wrap:wrap}
+nav.tabs a{padding:8px 12px;border-radius:8px;color:var(--muted);text-decoration:none;font-weight:600;font-size:14px}
+nav.tabs a:hover{background:var(--surface-2);color:var(--fg)}
+nav.tabs a[aria-current="page"]{background:var(--fg);color:var(--bg)}
+nav.tabs a.cta{background:var(--signal);color:var(--signal-ink)}
+nav.tabs a.cta[aria-current="page"]{outline:2px solid var(--fg)}
+.badge-admin{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;background:var(--accent);color:var(--accent-ink);border-radius:999px;padding:3px 8px}
+
+main{padding-block:24px 48px}
+.notice{border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:12px 14px;color:var(--muted);font-size:14px;margin-bottom:16px}
+.notice strong{color:var(--fg)}
+
+/* Intro + cifras */
+.intro{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:24px;align-items:end;margin-bottom:20px}
+.intro h2{font-size:clamp(26px,4vw,38px);font-weight:800;letter-spacing:-.01em}
+.intro p{margin:8px 0 0;color:var(--muted);max-width:56ch}
+.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.stat{background:var(--surface);padding:12px 14px}
+.stat b{display:block;font-family:var(--f-display);font-size:28px;font-weight:800;font-variant-numeric:tabular-nums;line-height:1}
+.stat span{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;font-weight:600}
+
+/* Barra de filtros */
+.toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:14px}
+.toolbar label{font-size:12px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.05em}
+.field-inline{display:flex;align-items:center;gap:6px}
+select,input[type=text],input[type=email],textarea{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 10px;max-width:100%}
+.toolbar select{padding:6px 8px}
+.toolbar .count{margin-left:auto;color:var(--muted);font-size:13px}
+
+/* Tarjetas */
+.list{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;display:grid;grid-template-columns:96px minmax(0,1fr);gap:12px;padding:12px;cursor:pointer;text-align:left;width:100%;transition:border-color .15s}
+.card:hover{border-color:var(--muted)}
+.thumb{width:96px;height:96px;border-radius:8px;background:var(--surface-2);object-fit:cover;display:grid;place-items:center;color:var(--muted);font-size:11px;overflow:hidden}
+.thumb img{width:100%;height:100%;object-fit:cover}
+.card-body{min-width:0;display:flex;flex-direction:column;gap:4px}
+.card-top{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.code{font-family:var(--f-mono);font-size:11px;color:var(--muted)}
+.card h3{font-size:17px;font-weight:700;overflow-wrap:anywhere}
+.meta{font-size:13px;color:var(--muted);overflow-wrap:anywhere}
+.card-foot{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:auto;padding-top:4px}
+.pill{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:600;border-radius:999px;padding:2px 9px;white-space:nowrap}
+.pill::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor}
+.st-reportado{color:var(--st-rep);background:var(--st-rep-bg)}
+.st-revisando{color:var(--st-rev);background:var(--st-rev-bg)}
+.st-en_atencion{color:var(--st-ate);background:var(--st-ate-bg)}
+.st-resuelto{color:var(--st-res);background:var(--st-res-bg)}
+.st-descartado{color:var(--st-des);background:var(--st-des-bg)}
+.chip{font-size:12px;color:var(--muted);border:1px solid var(--line);border-radius:6px;padding:1px 7px}
+.confirm{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--surface-2);border-radius:8px;padding:5px 10px;font-size:13px;font-weight:600;cursor:pointer}
+.confirm b{font-variant-numeric:tabular-nums}
+.confirm[aria-pressed="true"]{background:var(--signal);border-color:var(--signal);color:var(--signal-ink)}
+.confirm:disabled{opacity:.55;cursor:not-allowed}
+.has-reply{font-size:12px;color:var(--st-res);font-weight:600}
+
+.empty{background:var(--surface);border:1px dashed var(--line);border-radius:12px;padding:32px 20px;text-align:center;color:var(--muted)}
+.empty h3{color:var(--fg);font-size:20px;margin-bottom:6px}
+
+/* Formulario */
+.form-grid{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);gap:20px;align-items:start}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:20px}
+.panel h2{font-size:24px;margin-bottom:4px}
+.panel > p.sub{color:var(--muted);margin:0 0 16px}
+.f{display:flex;flex-direction:column;gap:6px;margin-bottom:14px}
+.f > label,.f > .lbl{font-weight:600;font-size:14px}
+.f .hint{font-size:12px;color:var(--muted)}
+.row2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px}
+textarea{min-height:96px;resize:vertical}
+.check{display:flex;gap:10px;align-items:flex-start;font-size:14px;padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:var(--surface-2);margin-bottom:10px}
+.check input{margin-top:3px;flex:none;width:16px;height:16px}
+.photo-drop{border:1.5px dashed var(--line);border-radius:10px;padding:14px;display:flex;gap:12px;align-items:center;background:var(--surface-2)}
+.photo-drop img{width:84px;height:84px;object-fit:cover;border-radius:8px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:0;border-radius:9px;padding:10px 16px;font-weight:700;cursor:pointer;background:var(--fg);color:var(--bg)}
+.btn.signal{background:var(--signal);color:var(--signal-ink)}
+.btn.ghost{background:transparent;border:1px solid var(--line);color:var(--fg)}
+.btn.danger{background:transparent;border:1px solid var(--danger);color:var(--danger)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.err{color:var(--danger);font-size:13px;min-height:1em}
+.side h3{font-size:18px;margin-bottom:8px}
+.side ul{margin:0;padding-left:18px;color:var(--muted);font-size:14px;display:grid;gap:6px}
+.side .panel + .panel{margin-top:12px}
+.warn{border-left:4px solid var(--signal)}
+
+/* Cómo funciona */
+.prose{max-width:70ch}
+.prose h2{font-size:28px;margin:8px 0 10px}
+.prose h3{font-size:19px;margin:22px 0 6px}
+.prose p,.prose li{color:var(--fg)}
+.prose .muted{color:var(--muted)}
+.steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin:16px 0}
+.step{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px}
+.step .n{font-family:var(--f-mono);font-size:12px;color:var(--muted)}
+.step h4{margin:4px 0;font-family:var(--f-display);font-size:17px}
+.step p{margin:0;font-size:14px;color:var(--muted)}
+table.priv{border-collapse:collapse;width:100%;font-size:14px}
+.tbl{overflow-x:auto;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+table.priv th,table.priv td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+table.priv th{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+table.priv tr:last-child td{border-bottom:0}
+
+/* Modal */
+.overlay{position:fixed;inset:0;background:rgba(10,14,22,.55);display:flex;align-items:flex-start;justify-content:center;padding:max(24px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) 24px max(16px,env(safe-area-inset-left,0px));overflow-y:auto;z-index:20}
+.modal{background:var(--surface);border-radius:14px;width:min(720px,100%);box-shadow:var(--shadow);overflow:hidden}
+.modal .photo{background:var(--surface-2);max-height:380px;display:grid;place-items:center}
+.modal .photo img{max-height:380px;width:100%;object-fit:contain}
+.modal .inner{padding:18px 20px 20px;display:grid;gap:12px}
+.modal h2{font-size:24px}
+.timeline{border-left:2px solid var(--line);padding-left:14px;display:grid;gap:10px}
+.timeline .t{font-size:12px;color:var(--muted);font-family:var(--f-mono)}
+.reply{background:var(--st-res-bg);border-radius:10px;padding:12px 14px}
+.reply .who{font-size:12px;font-weight:700;color:var(--st-res);text-transform:uppercase;letter-spacing:.05em}
+.reply p{margin:4px 0 0}
+.admin-box{border:1px solid var(--accent);border-radius:10px;padding:14px;display:grid;gap:10px}
+.admin-box h3{font-size:16px;color:var(--accent)}
+.modal-actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.close-x{position:absolute;right:10px;top:10px}
+
+/* Gestión */
+.admin-grid{display:grid;gap:12px}
+.rev-item{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px;display:grid;grid-template-columns:96px minmax(0,1fr);gap:12px}
+.rev-item .acts{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.sec-title{font-size:20px;margin:22px 0 10px}
+
+footer.credits{border-top:1px solid var(--line);background:var(--surface)}
+footer.credits .wrap{padding-block:18px;font-size:13px;color:var(--muted);display:flex;flex-wrap:wrap;gap:6px 24px;justify-content:space-between}
+footer.credits b{color:var(--fg)}
+
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(20px + env(safe-area-inset-bottom,0px));background:var(--fg);color:var(--bg);padding:10px 16px;border-radius:10px;font-weight:600;font-size:14px;z-index:40;max-width:calc(100% - 32px)}
+
+@media (max-width:760px){
+  .intro,.form-grid{grid-template-columns:minmax(0,1fr)}
+  .row2{grid-template-columns:minmax(0,1fr)}
+  .card,.rev-item{grid-template-columns:72px minmax(0,1fr)}
+  .thumb{width:72px;height:72px}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="tape" aria-hidden="true"></div>
+<header class="top">
+  <div class="wrap">
+    <div class="brand">
+      <div class="brand-mark" aria-hidden="true">!</div>
+      <div><h1>Avisa Campus</h1><small>Registro de incidentes del campus</small></div>
+    </div>
+    <nav class="tabs" aria-label="Secciones">
+      <a href="#incidentes" data-view="incidentes">Incidentes</a>
+      <a href="#reportar" data-view="reportar" class="cta">Reportar</a>
+      <a href="#como-funciona" data-view="como-funciona">Cómo funciona</a>
+      <a href="#gestion" data-view="gestion" id="tab-gestion" hidden>Gestión</a>
+    </nav>
+    <span class="badge-admin" id="badge-admin" hidden>Administrador</span>
+  </div>
+</header>
+
+<main class="wrap">
+  <div id="banner"></div>
+
+  <!-- VISTA: INCIDENTES -->
+  <section id="view-incidentes" data-section>
+    <div class="intro">
+      <div>
+        <h2>Quejarse no arregla un bache. Avisar, sí.</h2>
+        <p>Reporta lo que está malogrado en el campus, confirma lo que otros ya vieron y sigue qué respuesta se dio. Todo es anónimo.</p>
+      </div>
+      <div class="stats" aria-label="Resumen">
+        <div class="stat"><b id="s-total">0</b><span>Reportados</span></div>
+        <div class="stat"><b id="s-abiertos">0</b><span>Abiertos</span></div>
+        <div class="stat"><b id="s-resueltos">0</b><span>Resueltos</span></div>
+      </div>
+    </div>
+
+    <div class="toolbar">
+      <div class="field-inline"><label for="f-orden">Orden</label>
+        <select id="f-orden"><option value="prioridad">Más confirmados</option><option value="recientes">Más recientes</option></select></div>
+      <div class="field-inline"><label for="f-estado">Estado</label>
+        <select id="f-estado"><option value="abiertos">Abiertos</option><option value="todos">Todos</option><option value="reportado">Reportado</option><option value="revisando">En revisión</option><option value="en_atencion">En atención</option><option value="resuelto">Resuelto</option><option value="descartado">Descartado</option></select></div>
+      <div class="field-inline"><label for="f-cat">Tipo</label>
+        <select id="f-cat"><option value="todos">Todos</option></select></div>
+      <span class="count" id="count"></span>
+    </div>
+    <div id="list" class="list"></div>
+  </section>
+
+  <!-- VISTA: REPORTAR -->
+  <section id="view-reportar" data-section hidden>
+    <div class="form-grid">
+      <form class="panel" id="form" novalidate>
+        <h2>Reportar un incidente</h2>
+        <p class="sub">Tu reporte se publica sin tu nombre. Antes de crear uno nuevo, revisa si ya existe y confírmalo.</p>
+
+        <div class="f"><label for="r-titulo">¿Qué pasa?</label>
+          <input type="text" id="r-titulo" maxlength="80" placeholder="Ej.: Tomacorriente sin energía junto a la ventana">
+          <span class="hint">Una frase corta. Máximo 80 caracteres.</span></div>
+
+        <div class="row2">
+          <div class="f"><label for="r-cat">Tipo</label><select id="r-cat"></select></div>
+          <div class="f"><label for="r-zona">Zona</label><select id="r-zona"></select></div>
+        </div>
+
+        <div class="f"><label for="r-lugar">Lugar exacto</label>
+          <input type="text" id="r-lugar" maxlength="80" placeholder="Ej.: Salón V-204, segunda fila">
+        </div>
+
+        <div class="f"><label for="r-desc">Detalle <span class="hint">(opcional)</span></label>
+          <textarea id="r-desc" maxlength="600" placeholder="Desde cuándo pasa, a quién afecta, si es peligroso."></textarea></div>
+
+        <div class="f"><span class="lbl">Foto</span>
+          <div class="photo-drop">
+            <img id="r-preview" alt="Vista previa de la foto" hidden>
+            <div style="display:grid;gap:6px;min-width:0">
+              <input type="file" id="r-foto" accept="image/*" aria-label="Elegir foto">
+              <span class="hint">Sin rostros, placas ni pantallas con datos de otras personas.</span>
+            </div>
+          </div></div>
+
+        <label class="check"><input type="checkbox" id="r-norostros"><span><b>La foto y el texto no identifican a ninguna persona.</b> Ni rostros, ni nombres, ni datos personales de terceros.</span></label>
+        <label class="check"><input type="checkbox" id="r-persona"><span><b>Mi reporte se refiere a la conducta de una persona.</b> Se guarda oculto y solo lo ve la administración hasta revisarlo.</span></label>
+
+        <div class="f" style="margin-top:6px"><label for="r-correo">Correo para avisarte cuando se resuelva <span class="hint">(opcional)</span></label>
+          <input type="email" id="r-correo" maxlength="120" placeholder="tu.correo@pucp.edu.pe" autocomplete="email">
+          <span class="hint">Nunca se muestra en la página. Solo lo ve la administración.</span></div>
+        <label class="check" id="consent-row" hidden><input type="checkbox" id="r-consent"><span>Autorizo el uso de mi correo <b>solo</b> para avisarme sobre este incidente. Se elimina cuando el caso se cierra. Ver <a href="#como-funciona">aviso de privacidad</a>.</span></label>
+
+        <p class="err" id="r-err" role="alert"></p>
+        <button class="btn signal" type="submit" id="r-submit">Enviar reporte</button>
+      </form>
+
+      <aside class="side">
+        <div class="panel warn">
+          <h3>Este canal no es para denuncias de hostigamiento</h3>
+          <p style="margin:0;color:var(--muted);font-size:14px">Para hostigamiento o violencia usa los canales oficiales de la universidad, que tienen protocolos y confidencialidad propios.</p>
+        </div>
+        <div class="panel">
+          <h3>Un buen reporte</h3>
+          <ul>
+            <li>Dice dónde está el problema con precisión: pabellón, piso, salón.</li>
+            <li>Muestra el problema en la foto, no a las personas.</li>
+            <li>Describe el riesgo: un cable pelado no es lo mismo que una silla floja.</li>
+            <li>No repite uno que ya existe. Si ya está, confírmalo.</li>
+          </ul>
+        </div>
+        <div class="panel" id="mis-revision" hidden>
+          <h3>Tus reportes en revisión</h3>
+          <ul id="mis-revision-list"></ul>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  <!-- VISTA: CÓMO FUNCIONA -->
+  <section id="view-como-funciona" data-section hidden>
+    <div class="prose">
+      <h2>Cómo funciona</h2>
+      <p class="muted">Los problemas del campus se comentan entre amigos y no llegan a quien puede resolverlos. Avisa Campus deja cada incidente registrado, visible y con su respuesta.</p>
+      <div class="steps">
+        <div class="step"><span class="n">Paso 1</span><h4>Reportas</h4><p>Con foto, zona y lugar exacto. Sin nombre.</p></div>
+        <div class="step"><span class="n">Paso 2</span><h4>Otros confirman</h4><p>Cada confirmación sube la prioridad del incidente.</p></div>
+        <div class="step"><span class="n">Paso 3</span><h4>Se atiende</h4><p>La administración cambia el estado y publica qué se hizo.</p></div>
+        <div class="step"><span class="n">Paso 4</span><h4>Queda registro</h4><p>Cualquiera puede ver el historial y la respuesta.</p></div>
+      </div>
+
+      <h3>Estados de un incidente</h3>
+      <p><span class="pill st-reportado">Reportado</span> recién registrado · <span class="pill st-revisando">En revisión</span> la administración lo está evaluando · <span class="pill st-en_atencion">En atención</span> hay una acción en curso · <span class="pill st-resuelto">Resuelto</span> se solucionó · <span class="pill st-descartado">Descartado</span> no procede, con la razón publicada.</p>
+
+      <h3>Aviso de privacidad</h3>
+      <p class="muted">Conforme a la Ley N.º 29733, Ley de Protección de Datos Personales, el sistema recoge lo mínimo necesario.</p>
+      <div class="tbl"><table class="priv">
+        <tr><th>Dato</th><th>Para qué</th><th>Quién lo ve</th></tr>
+        <tr><td>Foto, zona, lugar, detalle y fecha</td><td>Registrar y atender el incidente</td><td>Público</td></tr>
+        <tr><td>Tus confirmaciones</td><td>Evitar que una persona confirme dos veces</td><td>Nadie ve quién confirmó; solo se muestra el total</td></tr>
+        <tr><td>Correo (opcional, con tu consentimiento)</td><td>Avisarte cuando el caso se cierre</td><td>Solo la administración. Se elimina al cerrar el caso</td></tr>
+        <tr><td>Nombre, código o DNI</td><td>No se piden</td><td>Nadie</td></tr>
+      </table></div>
+      <p class="muted">Los reportes sobre la conducta de una persona no se publican: quedan ocultos y solo la administración los revisa. Si algo publicado identifica a alguien, la administración lo retira de la vista pública.</p>
+
+      <h3>Qué no es este canal</h3>
+      <p>No es un canal de denuncias de hostigamiento o violencia. Para eso existen los canales oficiales de la universidad. Tampoco es un formulario cerrado: lo que se reporta y lo que se responde queda a la vista de todos.</p>
+    </div>
+  </section>
+
+  <!-- VISTA: GESTIÓN -->
+  <section id="view-gestion" data-section hidden>
+    <h2 style="font-size:28px">Gestión</h2>
+    <p style="color:var(--muted);margin:6px 0 0">Solo visible para la administración. Abre cualquier incidente desde la lista para cambiar su estado o responder.</p>
+    <h3 class="sec-title">Reportes en revisión <span class="code" id="rev-count"></span></h3>
+    <div id="rev-list" class="admin-grid"></div>
+    <h3 class="sec-title">Retirados de la vista pública <span class="code" id="arch-count"></span></h3>
+    <div id="arch-list" class="admin-grid"></div>
+  </section>
+</main>
+
+<footer class="credits">
+  <div class="wrap">
+    <span><b>Avisa Campus</b> · Proyecto del curso 1INF36 Ética y RSU en Ingeniería Informática, 2026-2</span>
+    <span>Equipo: <b id="equipo"></b></span>
+  </div>
+</footer>
+
+<div id="modal-root"></div>
+<div id="toast-root"></div>
+
+<script>
+(function(){
+"use strict";
+const EQUIPO = ["Ariana Burga Risco"];
+const CATEGORIAS = ["Infraestructura","Electricidad y enchufes","Equipos y laboratorios","Servicios","Limpieza","Seguridad y tránsito","Convivencia","Otro"];
+const ZONAS = ["Pabellón V","Estudios Generales Ciencias","Estudios Generales Letras","Biblioteca Central","Comedor Central","Polideportivo y canchas","Estacionamientos","Vías y áreas verdes","Otra zona"];
+const ESTADOS = {reportado:"Reportado",revisando:"En revisión",en_atencion:"En atención",resuelto:"Resuelto",descartado:"Descartado"};
+const CERRADOS = new Set(["resuelto","descartado"]);
+
+const S = { db:null, user:null, uid:null, admin:false, canWrite:null, readOnly:false,
+  inc:new Map(), gest:new Map(), votes:new Map(), myVotes:{}, fotos:new Map(),
+  rev:[], arch:[], contactos:new Map(), myRev:null, foto:null, mini:null, loaded:false };
+
+const $ = s => document.querySelector(s);
+function h(tag, attrs, ...kids){
+  const el = document.createElement(tag);
+  if (attrs) for (const [k,v] of Object.entries(attrs)){
+    if (v==null || v===false) continue;
+    if (k==="class") el.className=v; else if (k.startsWith("on")) el.addEventListener(k.slice(2),v);
+    else if (k==="text") el.textContent=v; else el.setAttribute(k, v===true?"":v);
+  }
+  for (const c of kids.flat()){ if (c==null||c===false) continue; el.append(c.nodeType?c:document.createTextNode(String(c))); }
+  return el;
+}
+function toast(msg){ const r=$("#toast-root"); r.replaceChildren(h("div",{class:"toast",role:"status",text:msg})); clearTimeout(toast.t); toast.t=setTimeout(()=>r.replaceChildren(),2800); }
+function fecha(iso){ if(!iso) return ""; const d=new Date(iso); return d.toLocaleDateString("es-PE",{day:"2-digit",month:"short",year:"numeric"})+" · "+d.toLocaleTimeString("es-PE",{hour:"2-digit",minute:"2-digit"}); }
+function nuevoId(){ const t=Date.now().toString(36).toUpperCase().slice(-5); const r=Math.random().toString(36).toUpperCase().slice(2,5); return "AV-"+t+r; }
+function estadoDe(id){ return (S.gest.get(id)||{}).estado || "reportado"; }
+function votosDe(id){ return S.votes.get(id)||0; }
+function pill(est){ return h("span",{class:"pill st-"+est,text:ESTADOS[est]||est}); }
+
+/* ---------- Pestañas ---------- */
+const VIEWS=["incidentes","reportar","como-funciona","gestion"];
+function route(){
+  let v=(location.hash||"#incidentes").slice(1); if(!VIEWS.includes(v)) v="incidentes";
+  if(v==="gestion" && !S.admin) v="incidentes";
+  document.querySelectorAll("[data-section]").forEach(s=>s.hidden = s.id!=="view-"+v);
+  document.querySelectorAll("nav.tabs a").forEach(a=>{ if(a.dataset.view===v) a.setAttribute("aria-current","page"); else a.removeAttribute("aria-current"); });
+}
+addEventListener("hashchange",route);
+
+/* ---------- Selects ---------- */
+for (const c of CATEGORIAS){ $("#f-cat").append(h("option",{value:c,text:c})); $("#r-cat").append(h("option",{value:c,text:c})); }
+for (const z of ZONAS) $("#r-zona").append(h("option",{value:z,text:z}));
+["#f-orden","#f-estado","#f-cat"].forEach(s=>$(s).addEventListener("change",renderList));
+$("#equipo").textContent = EQUIPO.join(", ");
+
+/* ---------- Lista ---------- */
+function renderStats(){
+  const ids=[...S.inc.keys()];
+  const abiertos=ids.filter(i=>!CERRADOS.has(estadoDe(i))).length;
+  const res=ids.filter(i=>estadoDe(i)==="resuelto").length;
+  $("#s-total").textContent=ids.length; $("#s-abiertos").textContent=abiertos; $("#s-resueltos").textContent=res;
+}
+function renderList(){
+  renderStats();
+  const list=$("#list");
+  if(!S.loaded){ list.replaceChildren(h("div",{class:"empty",style:"grid-column:1/-1"},h("h3",{text:"Cargando incidentes…"}))); return; }
+  const fe=$("#f-estado").value, fc=$("#f-cat").value, fo=$("#f-orden").value;
+  let items=[...S.inc.entries()].filter(([id,d])=>{
+    const e=estadoDe(id);
+    if(fe==="abiertos" && CERRADOS.has(e)) return false;
+    if(fe!=="abiertos" && fe!=="todos" && e!==fe) return false;
+    if(fc!=="todos" && d.categoria!==fc) return false;
+    return true;
+  });
+  items.sort((a,b)=> fo==="prioridad" ? (votosDe(b[0])-votosDe(a[0])) || (b[1].creado||"").localeCompare(a[1].creado||"") : (b[1].creado||"").localeCompare(a[1].creado||""));
+  $("#count").textContent = items.length + (items.length===1?" incidente":" incidentes");
+  if(!items.length){
+    const vacio = S.inc.size===0;
+    list.replaceChildren(h("div",{class:"empty",style:"grid-column:1/-1"},
+      h("h3",{text: vacio ? "Todavía no hay incidentes registrados" : "Nada con estos filtros"}),
+      h("p",{style:"margin:0 0 14px"}, vacio ? "Cuando alguien reporte un problema del campus, aparecerá aquí con su foto, su ubicación y la respuesta que reciba." : "Prueba con otro estado o tipo."),
+      vacio ? h("a",{class:"btn signal",href:"#reportar",text:"Reportar el primero"}) : null));
+    return;
+  }
+  list.replaceChildren(...items.map(([id,d])=>card(id,d)));
+}
+function confirmBtn(id){
+  const on=!!S.myVotes[id];
+  const b=h("button",{class:"confirm",type:"button","aria-pressed":String(on),title:on?"Quitar mi confirmación":"Yo también lo vi",
+    disabled: (S.readOnly||!S.uid)?true:null,
+    onclick:(e)=>{e.stopPropagation(); toggleVote(id);}}, on?"Confirmado":"Confirmo", h("b",{text:String(votosDe(id))}));
+  return b;
+}
+function card(id,d){
+  const g=S.gest.get(id)||{};
+  const thumb=h("div",{class:"thumb"}, d.mini? h("img",{src:d.mini,alt:"",loading:"lazy"}) : "Sin foto");
+  return h("article",{class:"card",tabindex:"0",role:"button","aria-label":"Ver "+(d.titulo||"incidente"),
+      onclick:()=>openDetail(id), onkeydown:(e)=>{ if(e.key==="Enter"||e.key===" "){e.preventDefault();openDetail(id);} }},
+    thumb,
+    h("div",{class:"card-body"},
+      h("div",{class:"card-top"}, pill(estadoDe(id)), h("span",{class:"chip",text:d.categoria||"Otro"})),
+      h("h3",{text:d.titulo||"(sin título)"}),
+      h("div",{class:"meta",text:(d.zona||"")+(d.lugar?" · "+d.lugar:"")}),
+      h("div",{class:"card-foot"},
+        h("span",{class:"code",text:id+" · "+new Date(d.creado).toLocaleDateString("es-PE",{day:"2-digit",month:"short"})}),
+        g.respuesta? h("span",{class:"has-reply",text:"Con respuesta"}) : null,
+        confirmBtn(id))));
+}
+
+/* ---------- Detalle ---------- */
+function closeModal(){ $("#modal-root").replaceChildren(); document.removeEventListener("keydown",escClose); }
+function escClose(e){ if(e.key==="Escape") closeModal(); }
+async function getFoto(path){
+  if(S.fotos.has(path)) return S.fotos.get(path);
+  try{ const s=await S.db.doc(path).get(); const v=s.exists ? (s.data().data||null) : null; S.fotos.set(path,v); return v; }catch(e){ return null; }
+}
+function openDetail(id){
+  const d=S.inc.get(id); if(!d) return;
+  const g=S.gest.get(id)||{};
+  const photo=h("div",{class:"photo"}, d.mini? h("img",{src:d.mini,alt:"Foto del incidente"}) : h("p",{class:"meta",style:"padding:24px",text:"Sin foto"}));
+  if(d.tieneFoto) getFoto("fotos/"+id).then(src=>{ if(src){ const im=photo.querySelector("img"); if(im) im.src=src; } });
+
+  const tl=h("div",{class:"timeline"},
+    h("div",null,h("div",{class:"t",text:fecha(d.creado)}),"Reportado de forma anónima"),
+    g.actualizado? h("div",null,h("div",{class:"t",text:fecha(g.actualizado)}),"Estado: ",pill(estadoDe(id))) : null);
+
+  const inner=h("div",{class:"inner"},
+    h("div",{class:"card-top"}, pill(estadoDe(id)), h("span",{class:"chip",text:d.categoria}), h("span",{class:"code",text:id})),
+    h("h2",{text:d.titulo}),
+    h("div",{class:"meta",text:d.zona+(d.lugar?" · "+d.lugar:"")}),
+    d.descripcion? h("p",{style:"margin:0;white-space:pre-wrap;overflow-wrap:anywhere",text:d.descripcion}) : null,
+    g.respuesta? h("div",{class:"reply"},h("div",{class:"who",text:"Respuesta de la administración"}),h("p",{style:"white-space:pre-wrap;overflow-wrap:anywhere",text:g.respuesta})) : null,
+    tl,
+    h("div",{class:"modal-actions"}, confirmBtn(id), h("button",{class:"btn ghost",type:"button",onclick:closeModal,text:"Cerrar"})));
+  if(S.admin) inner.append(adminBox(id));
+  const overlay=h("div",{class:"overlay",onclick:(e)=>{ if(e.target===overlay) closeModal(); }},
+    h("div",{class:"modal",role:"dialog","aria-modal":"true","aria-label":d.titulo}, photo, inner));
+  $("#modal-root").replaceChildren(overlay);
+  document.addEventListener("keydown",escClose);
+}
+function adminBox(id){
+  const g=S.gest.get(id)||{};
+  const sel=h("select",{id:"a-estado"}, ...Object.entries(ESTADOS).map(([k,v])=>h("option",{value:k,text:v,selected:k===estadoDe(id)?true:null})));
+  const ta=h("textarea",{id:"a-resp",placeholder:"Qué se hizo o por qué no procede. Esto se publica."}); ta.value=g.respuesta||"";
+  const contacto=S.contactos.get(id);
+  const err=h("p",{class:"err"});
+  const box=h("div",{class:"admin-box"},
+    h("h3",{text:"Gestión del incidente"}),
+    h("div",{class:"f",style:"margin:0"},h("label",{for:"a-estado",text:"Estado"}),sel),
+    h("div",{class:"f",style:"margin:0"},h("label",{for:"a-resp",text:"Respuesta pública"}),ta),
+    contacto? h("div",{class:"notice",style:"margin:0"},
+      h("strong",{text:"Correo de contacto: "}), h("span",{text:contacto.correo,style:"user-select:all;overflow-wrap:anywhere"}),
+      h("div",{style:"margin-top:8px;display:flex;gap:8px;flex-wrap:wrap"},
+        h("button",{class:"btn ghost",type:"button",onclick:async()=>{ try{ await navigator.clipboard.writeText(contacto.correo); toast("Correo copiado"); }catch(e){ toast("Selecciona el correo para copiarlo"); } },text:"Copiar correo"}),
+        h("button",{class:"btn danger",type:"button",onclick:()=>borrarContacto(id,contacto.uid),text:"Eliminar correo"}))) : null,
+    err,
+    h("div",{class:"modal-actions"},
+      h("button",{class:"btn danger",type:"button",onclick:()=>retirar(id),text:"Retirar de la vista pública"}),
+      h("button",{class:"btn",type:"button",onclick:async(e)=>{
+        e.target.disabled=true; err.textContent="";
+        try{ await S.db.doc("gestion/"+id).set({estado:sel.value,respuesta:ta.value.trim().slice(0,1000),actualizado:new Date().toISOString()});
+          toast("Cambios guardados"); closeModal();
+          if(CERRADOS.has(sel.value) && contacto) toast("Avisa al correo de contacto y luego elimínalo");
+        }catch(x){ err.textContent="No se pudo guardar: "+(x&&x.message||"error"); e.target.disabled=false; }
+      },text:"Guardar"})));
+  return box;
+}
+async function borrarContacto(id,uid){
+  try{ const ref=S.db.doc("contactos/"+uid); const s=await ref.get(); if(s.exists){ const items={...(s.data().items||{})}; delete items[id]; await ref.set({items}); }
+    toast("Correo eliminado"); closeModal(); }catch(e){ toast("No se pudo eliminar el correo"); }
+}
+async function retirar(id){
+  const d=S.inc.get(id); if(!d) return;
+  try{
+    await S.db.doc("archivo/"+id).set({incidente:d, gestion:S.gest.get(id)||null, retirado:new Date().toISOString()});
+    await S.db.doc("incidentes/"+id).delete();
+    try{ await S.db.doc("fotos/"+id).delete(); }catch(e){}
+    toast("Incidente retirado de la vista pública"); closeModal();
+  }catch(e){ toast("No se pudo retirar: "+(e&&e.message||"error")); }
+}
+
+/* ---------- Votos ---------- */
+let voting=false;
+async function toggleVote(id){
+  if(voting||!S.uid) return; voting=true;
+  const next={...S.myVotes}; if(next[id]) delete next[id]; else next[id]=true;
+  try{ await S.db.doc("votos/"+S.uid).set({ids:next}); }
+  catch(e){ toast("No se pudo registrar tu confirmación"); }
+  voting=false;
+}
+
+/* ---------- Formulario ---------- */
+function loadImage(file){ return new Promise((res,rej)=>{ const r=new FileReader(); r.onload=()=>{ const im=new Image(); im.onload=()=>res(im); im.onerror=rej; im.src=r.result; }; r.onerror=rej; r.readAsDataURL(file); }); }
+function compress(im,max,q,limit){
+  let scale=Math.min(1,max/Math.max(im.naturalWidth,im.naturalHeight)), out="";
+  for(let i=0;i<6;i++){
+    const c=document.createElement("canvas"); c.width=Math.round(im.naturalWidth*scale); c.height=Math.round(im.naturalHeight*scale);
+    c.getContext("2d").drawImage(im,0,0,c.width,c.height); out=c.toDataURL("image/jpeg",q);
+    if(out.length<=limit) return out; scale*=0.8; q=Math.max(0.45,q-0.08);
+  }
+  return out.length<=limit?out:null;
+}
+$("#r-foto").addEventListener("change",async(e)=>{
+  const f=e.target.files&&e.target.files[0]; S.foto=null; S.mini=null; $("#r-preview").hidden=true;
+  if(!f) return;
+  try{ const im=await loadImage(f); S.foto=compress(im,1100,0.75,190000); S.mini=compress(im,240,0.65,24000);
+    if(!S.foto){ $("#r-err").textContent="La foto es muy pesada, prueba con otra."; return; }
+    $("#r-preview").src=S.mini; $("#r-preview").hidden=false; $("#r-err").textContent="";
+  }catch(x){ $("#r-err").textContent="No se pudo leer la imagen. Usa JPG o PNG."; }
+});
+$("#r-correo").addEventListener("input",()=>{ $("#consent-row").hidden = !$("#r-correo").value.trim(); });
+
+$("#form").addEventListener("submit",async(e)=>{
+  e.preventDefault();
+  const err=$("#r-err"); err.textContent="";
+  if(!S.db){ err.textContent="Inicia sesión en claude.ai para reportar."; return; }
+  if(S.readOnly||!S.uid){ err.textContent="Con tu acceso actual solo puedes ver los incidentes. Pide acceso de colaborador."; return; }
+  const titulo=$("#r-titulo").value.trim(), lugar=$("#r-lugar").value.trim(), desc=$("#r-desc").value.trim(), correo=$("#r-correo").value.trim();
+  if(titulo.length<5){ err.textContent="Describe el problema en una frase (mínimo 5 caracteres)."; $("#r-titulo").focus(); return; }
+  if(!lugar){ err.textContent="Indica el lugar exacto para que se pueda ubicar."; $("#r-lugar").focus(); return; }
+  if(!$("#r-norostros").checked){ err.textContent="Confirma que el reporte no identifica a ninguna persona."; return; }
+  if(correo){
+    if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo)){ err.textContent="Revisa el correo."; return; }
+    if(!$("#r-consent").checked){ err.textContent="Para guardar tu correo necesitas autorizar su uso. Si no, deja el campo vacío."; return; }
+  }
+  const id=nuevoId(), ahora=new Date().toISOString();
+  const data={titulo:titulo.slice(0,80),categoria:$("#r-cat").value,zona:$("#r-zona").value,lugar:lugar.slice(0,80),descripcion:desc.slice(0,600),creado:ahora,tieneFoto:!!S.foto,mini:S.mini||null};
+  const btn=$("#r-submit"); btn.disabled=true; btn.textContent="Enviando…";
+  try{
+    if($("#r-persona").checked){
+      const ref=S.db.doc("revision/"+S.uid); const s=await ref.get();
+      const items={...((s.exists&&s.data().items)||{})}; items[id]=data;
+      await ref.set({items});
+      if(S.foto) await S.db.doc("revision/"+S.uid+"/fotos/"+id).set({data:S.foto});
+    }else{
+      await S.db.doc("incidentes/"+id).set(data);
+      if(S.foto) await S.db.doc("fotos/"+id).set({data:S.foto});
+    }
+    if(correo){
+      const ref=S.db.doc("contactos/"+S.uid); const s=await ref.get();
+      const items={...((s.exists&&s.data().items)||{})}; items[id]={correo,fecha:ahora,consentimiento:true};
+      await ref.set({items});
+    }
+    $("#form").reset(); S.foto=null; S.mini=null; $("#r-preview").hidden=true; $("#consent-row").hidden=true;
+    toast($("#r-persona").checked ? "Enviado a revisión. No se publicará hasta que la administración lo revise." : "Reporte publicado: "+id);
+    location.hash = "#incidentes";
+  }catch(x){ err.textContent="No se pudo enviar: "+(x&&x.message||"error")+". Intenta de nuevo."; }
+  btn.disabled=false; btn.textContent="Enviar reporte";
+});
+
+/* ---------- Gestión ---------- */
+function renderGestion(){
+  if(!S.admin) return;
+  $("#rev-count").textContent="("+S.rev.length+")";
+  const rl=$("#rev-list");
+  if(!S.rev.length) rl.replaceChildren(h("div",{class:"empty"},"No hay reportes esperando revisión."));
+  else rl.replaceChildren(...S.rev.map(({uid,id,d})=>h("div",{class:"rev-item"},
+    h("div",{class:"thumb"}, d.mini? h("img",{src:d.mini,alt:""}) : "Sin foto"),
+    h("div",{class:"card-body"},
+      h("div",{class:"card-top"}, h("span",{class:"chip",text:d.categoria}), h("span",{class:"code",text:id+" · "+fecha(d.creado)})),
+      h("h3",{text:d.titulo}), h("div",{class:"meta",text:d.zona+" · "+d.lugar}),
+      d.descripcion? h("p",{style:"margin:4px 0 0;white-space:pre-wrap;overflow-wrap:anywhere",text:d.descripcion}) : null,
+      h("div",{class:"acts"},
+        h("button",{class:"btn",type:"button",onclick:()=>aprobar(uid,id,d),text:"Publicar"}),
+        h("button",{class:"btn danger",type:"button",onclick:()=>descartarRev(uid,id),text:"Descartar"}))))));
+  $("#arch-count").textContent="("+S.arch.length+")";
+  const al=$("#arch-list");
+  if(!S.arch.length) al.replaceChildren(h("div",{class:"empty"},"Nada retirado."));
+  else al.replaceChildren(...S.arch.map(({id,a})=>h("div",{class:"rev-item"},
+    h("div",{class:"thumb"}, a.incidente&&a.incidente.mini? h("img",{src:a.incidente.mini,alt:""}) : "Sin foto"),
+    h("div",{class:"card-body"},
+      h("span",{class:"code",text:id+" · retirado "+fecha(a.retirado)}),
+      h("h3",{text:(a.incidente&&a.incidente.titulo)||id}),
+      h("div",{class:"acts"},
+        h("button",{class:"btn ghost",type:"button",onclick:()=>restaurar(id,a),text:"Volver a publicar"}),
+        h("button",{class:"btn danger",type:"button",onclick:async()=>{ try{ await S.db.doc("archivo/"+id).delete(); toast("Eliminado"); }catch(e){ toast("No se pudo eliminar"); } },text:"Eliminar definitivamente"}))))));
+}
+async function quitarDeRevision(uid,id){
+  const ref=S.db.doc("revision/"+uid); const s=await ref.get();
+  const items={...((s.exists&&s.data().items)||{})}; delete items[id];
+  await ref.set({items});
+  try{ await S.db.doc("revision/"+uid+"/fotos/"+id).delete(); }catch(e){}
+}
+async function aprobar(uid,id,d){
+  try{
+    await S.db.doc("incidentes/"+id).set(d);
+    if(d.tieneFoto){ const f=await getFoto("revision/"+uid+"/fotos/"+id); if(f) await S.db.doc("fotos/"+id).set({data:f}); }
+    await quitarDeRevision(uid,id); toast("Publicado");
+  }catch(e){ toast("No se pudo publicar: "+(e&&e.message||"error")); }
+}
+async function descartarRev(uid,id){
+  try{ await quitarDeRevision(uid,id); toast("Reporte descartado"); }catch(e){ toast("No se pudo descartar"); }
+}
+async function restaurar(id,a){
+  try{ await S.db.doc("incidentes/"+id).set({...a.incidente,tieneFoto:false});
+    if(a.gestion) await S.db.doc("gestion/"+id).set(a.gestion);
+    await S.db.doc("archivo/"+id).delete(); toast("Publicado de nuevo");
+  }catch(e){ toast("No se pudo restaurar"); }
+}
+function renderMisRevision(){
+  const items=S.myRev? Object.entries(S.myRev) : [];
+  $("#mis-revision").hidden=!items.length;
+  $("#mis-revision-list").replaceChildren(...items.map(([id,d])=>h("li",{text:d.titulo+" ("+id+")"})));
+}
+
+/* ---------- Arranque ---------- */
+function banner(html){ $("#banner").replaceChildren(html); }
+async function start(){
+  route(); renderList();
+  const claude=window.claude;
+  if(!claude||!claude.use){ S.loaded=true; renderList(); banner(h("div",{class:"notice"},h("strong",{text:"Vista sin conexión. "}),"Abre esta página desde claude.ai con tu cuenta para ver y reportar incidentes.")); return; }
+  const [db,user]=await Promise.all([claude.use("db"),claude.use("user")]);
+  S.db=db; S.user=user;
+  if(!db){ S.loaded=true; renderList(); banner(h("div",{class:"notice"},h("strong",{text:"Inicia sesión en claude.ai "}),"para ver y reportar incidentes.")); return; }
+  if(user){
+    S.uid=await user.id(); S.admin=await user.canEdit();
+    S.canWrite=await user.can("data.write");
+  }
+  S.readOnly = S.canWrite===false;
+  if(S.readOnly) banner(h("div",{class:"notice"},h("strong",{text:"Solo lectura. "}),"Puedes ver los incidentes, pero para reportar o confirmar necesitas acceso de colaborador."));
+  if(S.admin){ $("#tab-gestion").hidden=false; $("#badge-admin").hidden=false; }
+  route();
+
+  db.collection("incidentes").limit(1000).onSnapshot(snap=>{
+    S.inc=new Map(snap.docs.filter(d=>d.exists).map(d=>[d.id,d.data()])); S.loaded=true; renderList();
+  },()=>{ S.loaded=true; renderList(); });
+  db.collection("gestion").limit(1000).onSnapshot(snap=>{
+    S.gest=new Map(snap.docs.filter(d=>d.exists).map(d=>[d.id,d.data()])); renderList();
+  });
+  db.collection("votos").limit(1000).onSnapshot(snap=>{
+    const m=new Map(); let mine={};
+    for(const d of snap.docs){ if(!d.exists) continue; const ids=(d.data().ids)||{}; for(const k of Object.keys(ids)) m.set(k,(m.get(k)||0)+1); if(d.id===S.uid) mine={...ids}; }
+    S.votes=m; S.myVotes=mine; renderList();
+  });
+  if(S.uid){
+    db.doc("revision/"+S.uid).onSnapshot(s=>{ S.myRev = s.exists ? (s.data().items||{}) : null; renderMisRevision(); });
+  }
+  if(S.admin){
+    db.collection("revision").limit(500).onSnapshot(snap=>{
+      const arr=[]; for(const d of snap.docs){ if(!d.exists) continue; const items=d.data().items||{}; for(const [id,v] of Object.entries(items)) arr.push({uid:d.id,id,d:v}); }
+      arr.sort((a,b)=>(b.d.creado||"").localeCompare(a.d.creado||"")); S.rev=arr; renderGestion();
+    });
+    db.collection("archivo").limit(500).onSnapshot(snap=>{
+      S.arch=snap.docs.filter(d=>d.exists).map(d=>({id:d.id,a:d.data()})); renderGestion();
+    });
+    db.collection("contactos").limit(1000).onSnapshot(snap=>{
+      const m=new Map(); for(const d of snap.docs){ if(!d.exists) continue; for(const [id,v] of Object.entries(d.data().items||{})) m.set(id,{...v,uid:d.id}); }
+      S.contactos=m;
+    });
+    renderGestion();
+  }
+}
+start();
+})();
+</script>
+
+</body></html>
