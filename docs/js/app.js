@@ -291,7 +291,7 @@ const iso = value => value?.toDate ? value.toDate().toISOString() : (value || ''
 function data(doc){const d=doc.data();return {...d,creado:iso(d.creado),actualizado:iso(d.actualizado)};}
 function clearListeners(){ for(const off of [...listeners,...personal]) off(); listeners=[];personal=[]; }
 function failure(e){ S.loaded=true;renderList();banner(h('div',{class:'notice',role:'alert',text:'No se pudo sincronizar Firebase: '+e.message})); }
-function watch(query,callback){listeners.push(query.onSnapshot(callback,failure));}
+function watch(query,callback,options={}){listeners.push(query.onSnapshot(options,callback,failure));}
 async function bind(user){
   const turn=++bindingVersion;
   clearListeners(); closeModal();
@@ -312,11 +312,14 @@ async function bind(user){
   });
   watch(S.db.collection('usuarios/'+S.uid+'/votos'),snap=>{S.myVotes={};for(const d of snap.docs)if(d.data().activo)S.myVotes[d.id]=true;renderList();});
   watch(S.db.collection('autores').where('uid','==',S.uid),snap=>{
+    // Un autor local todavía sin confirmar no concede permisos en el servidor.
+    // Escuchar su padre antes del commit termina el listener con permission-denied.
+    if(snap.metadata.fromCache || snap.metadata.hasPendingWrites) return;
     for(const off of personal)off();personal=[]; S.myRev={};renderMisRevision();
     for(const author of snap.docs) personal.push(S.db.doc('incidentes/'+author.id).onSnapshot(doc=>{
       if(doc.exists&&doc.data().visibilidad==='revision')S.myRev[doc.id]=data(doc);else delete S.myRev[author.id];renderMisRevision();
     },failure));
-  });
+  },{includeMetadataChanges:true});
   if(S.admin){
     watch(S.db.collection('incidentes').where('visibilidad','==','revision'),snap=>{S.rev=snap.docs.map(d=>({id:d.id,d:data(d)}));renderGestion();});
     watch(S.db.collection('incidentes').where('visibilidad','==','archivo'),snap=>{S.arch=snap.docs.map(d=>({id:d.id,a:data(d)}));renderGestion();});
