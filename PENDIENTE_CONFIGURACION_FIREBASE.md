@@ -42,3 +42,4 @@ Se quitaron los avisos técnicos de conexión exitosa. Se conserva la apariencia
 Pruebas de esta actualización: npm test 13/13 y reglas en emulador 9/9. Prueba real local de cuenta nueva, reporte, Mis reportes, persistencia, acceso administrativo y limpieza correcta. La comprobación con fotos y desde Pages se registra en el cierre de la sesión; los resultados históricos anteriores no validan por sí solos este nuevo flujo.
 
 Los avisos automáticos siguen sin desplegarse por Spark; se conserva el borrador manual consentido. No se habilitan servicios de pago.
+`nLa actualización de cuentas y visor está publicada y comprobada desde Pages. Los avisos automáticos siguen pendientes bajo Spark.

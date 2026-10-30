@@ -61,3 +61,7 @@ Se quitaron los avisos técnicos de conexión exitosa. Se conserva la apariencia
 Pruebas de esta actualización: npm test 13/13 y reglas en emulador 9/9. Prueba real local de cuenta nueva, reporte, Mis reportes, persistencia, acceso administrativo y limpieza correcta. La comprobación con fotos y desde Pages se registra en el cierre de la sesión; los resultados históricos anteriores no validan por sí solos este nuevo flujo.
 
 Los avisos automáticos siguen sin desplegarse por Spark; se conserva el borrador manual consentido. No se habilitan servicios de pago.
+
+
+Cierre 30/10/2026: Pages publicó el commit 8221f5d correctamente. La prueba tests/accounts-browser.py pasó también desde https://sebasgomezg.github.io/1INF36-0881-L5/: cuenta con seudónimo, registro real, Mis reportes, persistencia de sesión al recargar, popup administrativo, foto en detalle y ampliación/cierre, ancho móvil sin desbordamiento y limpieza de datos técnicos. Se ejecutaron 13 pruebas unitarias y 9 de reglas, todas correctas. No se activó facturación. Los resultados de pruebas históricas con escritura anónima no corresponden al nuevo requisito de cuenta.
+
