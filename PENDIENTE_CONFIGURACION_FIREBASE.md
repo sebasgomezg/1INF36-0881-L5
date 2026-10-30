@@ -43,3 +43,15 @@ Pruebas de esta actualización: npm test 13/13 y reglas en emulador 9/9. Prueba 
 
 Los avisos automáticos siguen sin desplegarse por Spark; se conserva el borrador manual consentido. No se habilitan servicios de pago.
 `nLa actualización de cuentas y visor está publicada y comprobada desde Pages. Los avisos automáticos siguen pendientes bajo Spark.
+
+
+Actualización: se elimina el flujo de retirados/restauración. El borrado administrativo es definitivo y limpia datos asociados. Las pruebas usan cuentas técnicas y su limpieza se realiza mediante operaciones privilegiadas de Firebase, sin opción de borrar cuentas en la interfaz. El correo es manual (mailto/copiar); no hay envío automático activo.
+
+
+## Cierre de limpieza de ensayos y eliminación del flujo de retirados
+
+No existe sección ni estado de retirados en la aplicación vigente. Las reglas admiten solo visibilidad publico/revision. El borrado administrativo elimina definitivamente el reporte y sus datos asociados; no lo traslada a otro estado. Los apartados históricos de esta documentación describen versiones anteriores.
+
+Se eliminaron los dos reportes técnicos señalados y dos cuentas de ensayo verificadas mediante Firebase Admin. La prueba nueva utilizó una cuenta técnica y se limpiaron después su reporte y su cuenta mediante operaciones privilegiadas, sin usar eliminación de cuentas desde el navegador. Consulta posterior: cero reportes de esos ensayos y cero cuentas técnicas pendientes. No se borraron cuentas reales ni se modificó la facturación.
+
+Validación local: 13 pruebas unitarias y 9 pruebas de reglas correctas; prueba de navegador con Firebase real correcta. El correo automático sigue deshabilitado. La opción manual prepara un mailto o copia el mensaje; no equivale a envío ni entrega. No hay controles de eliminación de cuentas en el frontend. La limpieza de pruebas se realiza desde las herramientas administrativas de Firebase.

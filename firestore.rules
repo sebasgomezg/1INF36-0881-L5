@@ -22,7 +22,7 @@ service cloud.firestore {
         && d.lugar is string && d.lugar.size() >= 1 && d.lugar.size() <= 80
         && d.descripcion is string && d.descripcion.size() <= 600 && category(d.categoria) && zone(d.zona)
         && d.codigo == 'AV-' + id.upper() && d.creado is timestamp && d.actualizado is timestamp
-        && d.visibilidad in ['publico','revision','archivo'] && state(d.estado)
+        && d.visibilidad in ['publico','revision'] && state(d.estado)
         && d.respuesta is string && d.respuesta.size() <= 1000
         && d.confirmaciones is int && d.confirmaciones >= 0 && d.version is int && d.version >= 0
         && d.tieneFoto is bool && ((!d.tieneFoto && d.mini == null) || (d.tieneFoto && d.mini is string && d.mini.size() <= 24000 && d.mini.matches('data:image/jpeg;base64,[A-Za-z0-9+/=]+')));
@@ -56,11 +56,11 @@ service cloud.firestore {
         && getAfter(/databases/$(database)/documents/incidentes/$(id)/historial/$(request.resource.data.version)).data.respuesta == request.resource.data.respuesta
         && getAfter(/databases/$(database)/documents/incidentes/$(id)/historial/$(request.resource.data.version)).data.fecha == request.time
       ));
-      allow delete: if cleaning(id) && resource.data.visibilidad == 'archivo';
+      allow delete: if cleaning(id);
       match /historial/{version} {
         allow read: if readable(id);
         allow create: if admin() && request.resource.data.keys().hasOnly(['accion','estado','visibilidad','respuesta','fecha'])
-          && request.resource.data.accion in ['actualizar','aprobar','descartar','retirar','restaurar']
+          && request.resource.data.accion in ['actualizar','aprobar','descartar']
           && getAfter(/databases/$(database)/documents/incidentes/$(id)).data.version == int(version)
           && get(/databases/$(database)/documents/incidentes/$(id)).data.version + 1 == int(version)
           && request.resource.data.estado == getAfter(/databases/$(database)/documents/incidentes/$(id)).data.estado
@@ -129,7 +129,7 @@ service cloud.firestore {
       allow read: if admin();
       allow create: if admin() && request.resource.data.keys().hasOnly(['solicitado'])
         && request.resource.data.solicitado == request.time
-        && get(/databases/$(database)/documents/incidentes/$(id)).data.visibilidad == 'archivo';
+        && exists(/databases/$(database)/documents/incidentes/$(id));
       allow update: if false;
       allow delete: if admin();
     }

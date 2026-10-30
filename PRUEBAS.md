@@ -72,3 +72,12 @@ Correcciones 30/10/2026: restaurada fecha de creación y cada cambio de estado e
 
 Verificación pública de a16ad02: build de Pages exitoso; tests/accounts-browser.py pasó desde la URL pública, incluyendo rechazo de usuario con símbolo inicial, contraseña de 7 caracteres resaltada, historial acumulado Reportado/En revisión/Resuelto y retiro administrativo desde el botón del detalle. Datos técnicos del ensayo limpiados.
 
+
+
+## Cierre de limpieza de ensayos y eliminación del flujo de retirados
+
+No existe sección ni estado de retirados en la aplicación vigente. Las reglas admiten solo visibilidad publico/revision. El borrado administrativo elimina definitivamente el reporte y sus datos asociados; no lo traslada a otro estado. Los apartados históricos de esta documentación describen versiones anteriores.
+
+Se eliminaron los dos reportes técnicos señalados y dos cuentas de ensayo verificadas mediante Firebase Admin. La prueba nueva utilizó una cuenta técnica y se limpiaron después su reporte y su cuenta mediante operaciones privilegiadas, sin usar eliminación de cuentas desde el navegador. Consulta posterior: cero reportes de esos ensayos y cero cuentas técnicas pendientes. No se borraron cuentas reales ni se modificó la facturación.
+
+Validación local: 13 pruebas unitarias y 9 pruebas de reglas correctas; prueba de navegador con Firebase real correcta. El correo automático sigue deshabilitado. La opción manual prepara un mailto o copia el mensaje; no equivale a envío ni entrega. No hay controles de eliminación de cuentas en el frontend. La limpieza de pruebas se realiza desde las herramientas administrativas de Firebase.

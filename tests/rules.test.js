@@ -25,7 +25,7 @@ function compat(db){
 globalThis.window={firebase:{firestore:{FieldValue:{serverTimestamp}}}};
 const service=uid=>new CampusService(compat(db(uid)),uid);
 async function grantAdmin(){await env.withSecurityRulesDisabled(c=>setDoc(doc(c.firestore(),'admins/admin'),{habilitado:true}));}
-test('anónimo crea incidente atómico y otro cliente ve datos persistidos',async()=>{
+test('cuenta crea incidente atómico y otro cliente ve datos persistidos',async()=>{
   const result=await assertSucceeds(service('a').create(input(),null,'',false,false));
   const snap=await assertSucceeds(getDoc(doc(db('b'),'incidentes',result.id)));
   assert.equal(snap.data().titulo,input().titulo);assert.equal(snap.data().confirmaciones,0);
@@ -65,7 +65,7 @@ test('no puede crear roles, estados, historial, correos salientes ni huérfanos'
   await assertFails(setDoc(doc(db('a'),'autores/huerfano'),{uid:'a'}));
   await assertFails(deleteDoc(doc(db('a'),'incidentes',id)));
 });
-test('admin aprueba de forma atómica, conserva fotos, historial, retira y restaura',async()=>{
+test('admin aprueba de forma atómica y conserva fotos e historial',async()=>{
   await grantAdmin();const photo='data:image/jpeg;base64,AAAA';
   const {id}=await service('a').create({...input(),mini:photo},photo,'a@campus.test',true,true);
   await assertSucceeds(service('admin').manage(id,{visibilidad:'publico'},'aprobar'));
@@ -73,10 +73,7 @@ test('admin aprueba de forma atómica, conserva fotos, historial, retira y resta
   await assertSucceeds(service('admin').manage(id,{estado:'resuelto',respuesta:'Reparado'},'actualizar'));
   const history=await getDocs(collection(db('b'),`incidentes/${id}/historial`));assert.equal(history.size,2);
   await assertFails(updateDoc(doc(db('admin'),'incidentes',id),{estado:'descartado'}));
-  await assertSucceeds(service('admin').manage(id,{visibilidad:'archivo'},'retirar'));
-  await assertFails(getDoc(doc(db('b'),'fotos',id)));
-  await assertSucceeds(service('admin').manage(id,{visibilidad:'publico'},'restaurar'));
-  await assertSucceeds(getDoc(doc(db('b'),'fotos',id)));
+
 });
 test('reglas rechazan entradas inválidas y crean todo o nada',async()=>{
   const a=db('a'), id='INVALID';const batch=writeBatch(a);

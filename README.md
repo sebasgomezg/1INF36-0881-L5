@@ -103,10 +103,24 @@ Si se cambian reglas o índices, revisar primero la versión remota y ejecutar l
 
 La navegación pública usa Iniciar sesión con popup de acceso/registro. Los estudiantes eligen un seudónimo y contraseña; Firebase Auth utiliza internamente un identificador de correo técnico @usuarios.avisa.invalid, sin solicitar un correo real. Las contraseñas se gestionan exclusivamente mediante Authentication y no se guardan en Firestore. La cuenta administrativa conserva su correo existente. No hay recuperación por correo para seudónimos sin dirección real.
 
-Los visitantes consultan reportes; registrar y confirmar exige cuenta también en las reglas. El registro vincula la sesión anónima actual para preservar sus reportes. Mis reportes reúne publicaciones, pendientes y retirados propios, con detalle e historial. Las suscripciones actualizan tarjetas y detalles de estudiantes. No se publican usuarios en los incidentes.
+Los visitantes consultan reportes; registrar y confirmar exige cuenta también en las reglas. El registro vincula la sesión anónima actual para preservar sus reportes. Mis reportes reúne publicaciones, pendientes y reportes propios, con detalle e historial. Las suscripciones actualizan tarjetas y detalles de estudiantes. No se publican usuarios en los incidentes.
 
 Se quitaron los avisos técnicos de conexión exitosa. Se conserva la apariencia, con marco 4:3 para fotos del detalle, object-fit:contain y visor superpuesto responsive con Cerrar. Las tarjetas mantienen miniaturas cuadradas.
 
 Pruebas de esta actualización: npm test 13/13 y reglas en emulador 9/9. Prueba real local de cuenta nueva, reporte, Mis reportes, persistencia, acceso administrativo y limpieza correcta. La comprobación con fotos y desde Pages se registra en el cierre de la sesión; los resultados históricos anteriores no validan por sí solos este nuevo flujo.
 
 Los avisos automáticos siguen sin desplegarse por Spark; se conserva el borrador manual consentido. No se habilitan servicios de pago.
+
+
+Actualización: se elimina el flujo de retirados/restauración. El borrado administrativo es definitivo y limpia datos asociados. Las pruebas usan cuentas técnicas y su limpieza se realiza mediante operaciones privilegiadas de Firebase, sin opción de borrar cuentas en la interfaz. El correo es manual (mailto/copiar); no hay envío automático activo.
+
+No hay estado ni sección de retirados; las únicas visibilidades vigentes son publico y revision. No hay opción de eliminar cuentas en la interfaz. Las cuentas de prueba se eliminan únicamente desde Firebase Admin.
+
+
+## Cierre de limpieza de ensayos y eliminación del flujo de retirados
+
+No existe sección ni estado de retirados en la aplicación vigente. Las reglas admiten solo visibilidad publico/revision. El borrado administrativo elimina definitivamente el reporte y sus datos asociados; no lo traslada a otro estado. Los apartados históricos de esta documentación describen versiones anteriores.
+
+Se eliminaron los dos reportes técnicos señalados y dos cuentas de ensayo verificadas mediante Firebase Admin. La prueba nueva utilizó una cuenta técnica y se limpiaron después su reporte y su cuenta mediante operaciones privilegiadas, sin usar eliminación de cuentas desde el navegador. Consulta posterior: cero reportes de esos ensayos y cero cuentas técnicas pendientes. No se borraron cuentas reales ni se modificó la facturación.
+
+Validación local: 13 pruebas unitarias y 9 pruebas de reglas correctas; prueba de navegador con Firebase real correcta. El correo automático sigue deshabilitado. La opción manual prepara un mailto o copia el mensaje; no equivale a envío ni entrega. No hay controles de eliminación de cuentas en el frontend. La limpieza de pruebas se realiza desde las herramientas administrativas de Firebase.

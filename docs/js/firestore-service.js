@@ -47,12 +47,12 @@ export class CampusService {
       });
     });
   }
-  async deleteArchived(id) {
+  async deleteIncident(id) {
     // Borrado reanudable en Spark. Bloquear restauración/votos durante la limpieza.
     await this.db.runTransaction(async tx => {
       const incident = await tx.get(this.db.doc(`incidentes/${id}`));
       const job = await tx.get(this.db.doc(`eliminaciones/${id}`));
-      if (!incident.exists || incident.data().visibilidad !== 'archivo') throw Error('Solo se eliminan incidentes retirados.');
+      if (!incident.exists) throw Error('El reporte no existe.');
       if (!job.exists) tx.set(this.db.doc(`eliminaciones/${id}`), { solicitado: stamp() });
     });
     for (const source of [this.db.collection(`incidentes/${id}/historial`), this.db.collectionGroup('votos').where('incidente','==',id), this.db.collection('notificaciones').where('incidente','==',id)]) {

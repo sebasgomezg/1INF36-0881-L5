@@ -13,7 +13,7 @@ const CERRADOS = new Set(["resuelto","descartado"]);
 
 const S = { db:null, user:null, uid:null, admin:false, canWrite:null, readOnly:false,
   mine:new Map(), inc:new Map(), gest:new Map(), votes:new Map(), myVotes:{}, fotos:new Map(),
-  rev:[], arch:[], contactos:new Map(), myRev:null, foto:null, mini:null, loaded:false };
+  rev:[],  contactos:new Map(), myRev:null, foto:null, mini:null, loaded:false };
 
 const $ = s => document.querySelector(s);
 function h(tag, attrs, ...kids){
@@ -29,7 +29,7 @@ function h(tag, attrs, ...kids){
 function toast(msg){ const r=$("#toast-root"); r.replaceChildren(h("div",{class:"toast",role:"status",text:msg})); clearTimeout(toast.t); toast.t=setTimeout(()=>r.replaceChildren(),2800); }
 function fecha(iso){ if(!iso) return ""; const d=new Date(iso); return d.toLocaleDateString("es-PE",{day:"2-digit",month:"short",year:"numeric"})+" · "+d.toLocaleTimeString("es-PE",{hour:"2-digit",minute:"2-digit"}); }
 function nuevoId(){ const t=Date.now().toString(36).toUpperCase().slice(-5); const r=Math.random().toString(36).toUpperCase().slice(2,5); return "AV-"+t+r; }
-function incidentData(id){ return S.all?.get(id)||S.inc.get(id)||S.mine.get(id)||S.rev.find(r=>r.id===id)?.d||S.arch.find(r=>r.id===id)?.a; }
+function incidentData(id){ return S.all?.get(id)||S.inc.get(id)||S.mine.get(id)||S.rev.find(r=>r.id===id)?.d; }
 function estadoDe(id){ return (incidentData(id)||{}).estado || "reportado"; }
 function votosDe(id){ return incidentData(id)?.confirmaciones||0; }
 function pill(est){ return h("span",{class:"pill st-"+est,text:ESTADOS[est]||est}); }
@@ -174,7 +174,7 @@ function adminBox(id){
         h("button",{class:"btn danger",type:"button",onclick:()=>borrarContacto(id,contacto.uid),text:"Eliminar correo"}))) : null,
     err,
     h("div",{class:"modal-actions"},
-      h("button",{class:"btn danger",type:"button",onclick:()=>retirar(id),text:"Retirar de la vista pública"}),
+      h("button",{class:"btn danger",type:"button",onclick:()=>eliminarReporte(id),text:"Eliminar reporte"}),
       h("button",{class:"btn",type:"button",onclick:async(e)=>{
         e.target.disabled=true; err.textContent="";
         try{ await S.service.manage(id,{estado:sel.value,respuesta:ta.value.trim()},"actualizar");
@@ -188,9 +188,9 @@ async function borrarContacto(id){
   try{ await S.db.doc('contactos/'+id).delete(); toast('Correo eliminado'); closeModal(); }
   catch(e){ toast('No se pudo eliminar el correo'); }
 }
-async function retirar(id){
-  try{ await S.service.manage(id,{visibilidad:'archivo'},'retirar'); toast('Incidente retirado'); closeModal(); }
-  catch(e){ toast('No se pudo retirar: '+e.message); }
+async function eliminarReporte(id){
+  if(!confirm('¿Eliminar este reporte y sus datos asociados definitivamente?'))return;
+  try{await S.service.deleteIncident(id);closeModal();toast('Reporte eliminado');}catch(e){toast('No se pudo eliminar: '+e.message);}
 }
 
 /* ---------- Votos ---------- */
@@ -270,19 +270,13 @@ function renderGestion(){
         h('div',{class:'acts'},
           h('button',{class:'btn ghost',type:'button',text:'Ver expediente',onclick:()=>openDetail(id)}),
           h('button',{class:'btn',type:'button',text:'Publicar',disabled:d.estado==='descartado',onclick:(e)=>adminAction(e,()=>S.service.manage(id,{visibilidad:'publico'},'aprobar'))}),
-          h('button',{class:'btn danger',type:'button',text:'Descartar',disabled:d.estado==='descartado',onclick:(e)=>adminAction(e,()=>S.service.manage(id,{estado:'descartado',visibilidad:'archivo',respuesta:'No procede su publicación.'},'descartar'))}))))) : [h('div',{class:'empty',text:'No hay reportes esperando revisión.'})]));
-  $('#arch-count').textContent='('+S.arch.length+')';
-  $('#arch-list').replaceChildren(...(S.arch.length?S.arch.map(({id,a})=>h('div',{class:'rev-item'},
-    h('div',{class:'thumb'},a.mini?h('img',{src:a.mini,alt:''}):'Sin foto'),h('div',null,
-      h('span',{class:'code',text:a.codigo}),h('h3',{text:a.titulo}),h('div',{class:'acts'},
-        h('button',{class:'btn ghost',type:'button',text:'Ver expediente',onclick:()=>openDetail(id)}),
-        h('button',{class:'btn ghost',text:'Volver a publicar',onclick:(e)=>adminAction(e,()=>S.service.manage(id,{visibilidad:'publico'},'restaurar'))}),
-        h('button',{class:'btn danger',text:'Eliminar definitivamente',onclick:(e)=>adminAction(e,()=>S.service.deleteArchived(id))}))))): [h('div',{class:'empty',text:'Nada retirado.'})]));
+          h('button',{class:'btn danger',type:'button',text:'Descartar',disabled:d.estado==='descartado',onclick:(e)=>adminAction(e,()=>S.service.manage(id,{estado:'descartado',respuesta:'No procede su publicación.'},'descartar'))}))))) : [h('div',{class:'empty',text:'No hay reportes esperando revisión.'})]));
+
 }
 
 function renderAdminGroups(){
  const filter=$('#admin-state').value,category=$('#admin-category').value,order=$('#admin-order').value;
- const items=[...(S.all||[])].filter(([id,d])=>d.visibilidad!=='archivo'&&(filter==='todos'||(filter==='abiertos'?!CERRADOS.has(d.estado):d.estado===filter))&&(category==='todos'||d.categoria===category));
+ const items=[...(S.all||[])].filter(([id,d])=>(filter==='todos'||(filter==='abiertos'?!CERRADOS.has(d.estado):d.estado===filter))&&(category==='todos'||d.categoria===category));
  items.sort((a,b)=>(order==='prioridad'?b[1].confirmaciones-a[1].confirmaciones:0)||(b[1].creado||'').localeCompare(a[1].creado||''));
  $('#admin-groups').replaceChildren(...Object.entries(ESTADOS).map(([state,label])=>h('section',null,h('h3',{class:'sec-title',text:label}),h('div',{class:'list'},...items.filter(([id,d])=>d.estado===state).map(([id,d])=>card(id,d))))));
 }
@@ -316,9 +310,9 @@ function watch(query,callback,options={}){listeners.push(query.onSnapshot(option
 async function bind(user){
   const turn=++bindingVersion;
   clearListeners(); closeModal();
-  S.all=new Map();S.mine.clear();S.uid=user?.uid||null; S.admin=false; S.inc.clear();S.gest.clear();S.votes.clear();S.fotos.clear();S.contactos.clear();S.myVotes={};S.myRev={};S.rev=[];S.arch=[];
+  S.all=new Map();S.mine.clear();S.uid=user?.uid||null; S.admin=false; S.inc.clear();S.gest.clear();S.votes.clear();S.fotos.clear();S.contactos.clear();S.myVotes={};S.myRev={};S.rev=[];
   $('#badge-admin').hidden=true;$('#admin-content').hidden=true;$('#admin-login').hidden=false;$('#logout').hidden=true;
-  $('#rev-list').replaceChildren();$('#arch-list').replaceChildren();$('#notifications').replaceChildren();
+  $('#rev-list').replaceChildren();$('#notifications').replaceChildren();
   renderMisRevision();renderList();
   if(!user) return;
   S.service=new CampusService(S.db,S.uid);
@@ -350,7 +344,6 @@ async function bind(user){
   if(S.admin){
     watch(S.db.collection('incidentes'),snap=>{S.all=new Map(snap.docs.map(d=>[d.id,data(d)]));renderAdminGroups();});
     watch(S.db.collection('incidentes').where('visibilidad','==','revision'),snap=>{S.rev=snap.docs.map(d=>({id:d.id,d:data(d)}));renderGestion();});
-    watch(S.db.collection('incidentes').where('visibilidad','==','archivo'),snap=>{S.arch=snap.docs.map(d=>({id:d.id,a:data(d)}));renderGestion();});
     watch(S.db.collection('contactos'),snap=>{S.contactos=new Map(snap.docs.map(d=>[d.id,d.data()]));});
     watch(S.db.collection('notificaciones'),snap=>{
       $('#notifications').replaceChildren(...snap.docs.map(doc=>{

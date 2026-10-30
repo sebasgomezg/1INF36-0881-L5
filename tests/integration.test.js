@@ -53,12 +53,10 @@ test('flujo real de emuladores: Auth, dos clientes, voto, moderación, correo si
   await assert.rejects(b.db.doc('fotos/'+privateResult.id).get());
   await sm.manage(privateResult.id,{visibilidad:'publico'},'aprobar');
   assert.equal((await b.db.doc('fotos/'+privateResult.id).get()).data().data,photo);
-  await sm.manage(privateResult.id,{visibilidad:'archivo'},'retirar');
-  await sm.deleteArchived(privateResult.id);
+  await sm.deleteIncident(privateResult.id);
   for(const c of ['autores','contactos','fotos','eliminaciones'])assert.equal((await db.doc(c+'/'+privateResult.id).get()).exists,false);
   assert.equal((await db.collection('incidentes/'+privateResult.id+'/historial').get()).size,0);
-  await sm.manage(id,{visibilidad:'archivo'},'retirar');
-  await sm.deleteArchived(id);
+  await sm.deleteIncident(id);
   assert.equal((await db.doc(`usuarios/${b.auth.currentUser.uid}/votos/${id}`).get()).exists,false);
   assert.equal((await db.doc('notificaciones/'+key).get()).exists,false);
   assert.equal((await db.doc('incidentes/'+id).get()).exists,false);
