@@ -69,3 +69,6 @@ Cierre 30/10/2026: Pages publicó el commit 8221f5d correctamente. La prueba tes
 
 Correcciones 30/10/2026: restaurada fecha de creación y cada cambio de estado en historial vivo; foto de detalle reducida y Sin foto compacto; usuario empieza con letra/número; contraseña mínima 8 con mensaje visible y errores por campo; administrador sin Mis reportes/Reportar y gestión agrupada por los cinco estados con filtros. Eliminado únicamente el reporte Tomacorrientes de Diodo no funcionan solicitado por el propietario. Prueba local de navegador confirmó validaciones, creación, trazabilidad Reportado/En revisión/Resuelto y retiro desde UI. Los mensajes de acceso distinguen usuario y contraseña solo cuando Firebase proporciona ese dato; invalid-credential conserva el mensaje genérico para no debilitar su protección. 13 pruebas unitarias correctas; reglas no modificadas.
 
+
+Verificación pública de a16ad02: build de Pages exitoso; tests/accounts-browser.py pasó desde la URL pública, incluyendo rechazo de usuario con símbolo inicial, contraseña de 7 caracteres resaltada, historial acumulado Reportado/En revisión/Resuelto y retiro administrativo desde el botón del detalle. Datos técnicos del ensayo limpiados.
+
