@@ -65,3 +65,7 @@ Los avisos automáticos siguen sin desplegarse por Spark; se conserva el borrado
 
 Cierre 30/10/2026: Pages publicó el commit 8221f5d correctamente. La prueba tests/accounts-browser.py pasó también desde https://sebasgomezg.github.io/1INF36-0881-L5/: cuenta con seudónimo, registro real, Mis reportes, persistencia de sesión al recargar, popup administrativo, foto en detalle y ampliación/cierre, ancho móvil sin desbordamiento y limpieza de datos técnicos. Se ejecutaron 13 pruebas unitarias y 9 de reglas, todas correctas. No se activó facturación. Los resultados de pruebas históricas con escritura anónima no corresponden al nuevo requisito de cuenta.
 
+
+
+Correcciones 30/10/2026: restaurada fecha de creación y cada cambio de estado en historial vivo; foto de detalle reducida y Sin foto compacto; usuario empieza con letra/número; contraseña mínima 8 con mensaje visible y errores por campo; administrador sin Mis reportes/Reportar y gestión agrupada por los cinco estados con filtros. Eliminado únicamente el reporte Tomacorrientes de Diodo no funcionan solicitado por el propietario. Prueba local de navegador confirmó validaciones, creación, trazabilidad Reportado/En revisión/Resuelto y retiro desde UI. Los mensajes de acceso distinguen usuario y contraseña solo cuando Firebase proporciona ese dato; invalid-credential conserva el mensaje genérico para no debilitar su protección. 13 pruebas unitarias correctas; reglas no modificadas.
+

@@ -158,7 +158,7 @@
       <p class="err" id="admin-error" role="alert"></p><button class="btn" id="login-submit">Iniciar sesión</button>
     </form>
     <button class="btn ghost" id="logout" type="button" hidden>Cerrar sesión</button>
-    <div id="admin-content" hidden>
+    <div id="admin-content" hidden><div class="toolbar"><label for="admin-order">Orden</label><select id="admin-order"><option value="prioridad">Más confirmados</option><option value="recientes">Más recientes</option></select><label for="admin-state">Estado</label><select id="admin-state"><option value="todos">Todos</option><option value="abiertos">Abiertos</option><option value="reportado">Reportado</option><option value="revisando">En revisión</option><option value="en_atencion">En atención</option><option value="resuelto">Resuelto</option><option value="descartado">Descartado</option></select><label for="admin-category">Tipo</label><select id="admin-category"><option value="todos">Todos</option><option>Infraestructura</option><option>Electricidad y enchufes</option><option>Equipos y laboratorios</option><option>Servicios</option><option>Limpieza</option><option>Seguridad y tránsito</option><option>Convivencia</option><option>Otro</option></select></div><div id="admin-groups"></div>
     <p style="color:var(--muted);margin:6px 0 0">Solo visible para la administración. Abre cualquier incidente desde la lista para cambiar su estado o responder.</p>
     <h3 class="sec-title">Reportes en revisión <span class="code" id="rev-count"></span></h3>
     <div id="rev-list" class="admin-grid"></div>

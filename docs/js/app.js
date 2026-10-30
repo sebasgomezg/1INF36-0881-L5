@@ -29,9 +29,9 @@ function h(tag, attrs, ...kids){
 function toast(msg){ const r=$("#toast-root"); r.replaceChildren(h("div",{class:"toast",role:"status",text:msg})); clearTimeout(toast.t); toast.t=setTimeout(()=>r.replaceChildren(),2800); }
 function fecha(iso){ if(!iso) return ""; const d=new Date(iso); return d.toLocaleDateString("es-PE",{day:"2-digit",month:"short",year:"numeric"})+" · "+d.toLocaleTimeString("es-PE",{hour:"2-digit",minute:"2-digit"}); }
 function nuevoId(){ const t=Date.now().toString(36).toUpperCase().slice(-5); const r=Math.random().toString(36).toUpperCase().slice(2,5); return "AV-"+t+r; }
-function incidentData(id){ return S.inc.get(id)||S.mine.get(id)||S.rev.find(r=>r.id===id)?.d||S.arch.find(r=>r.id===id)?.a; }
-function estadoDe(id){ return (S.gest.get(id)||incidentData(id)||{}).estado || "reportado"; }
-function votosDe(id){ return S.votes.get(id)||0; }
+function incidentData(id){ return S.all?.get(id)||S.inc.get(id)||S.mine.get(id)||S.rev.find(r=>r.id===id)?.d||S.arch.find(r=>r.id===id)?.a; }
+function estadoDe(id){ return (incidentData(id)||{}).estado || "reportado"; }
+function votosDe(id){ return incidentData(id)?.confirmaciones||0; }
 function pill(est){ return h("span",{class:"pill st-"+est,text:ESTADOS[est]||est}); }
 
 /* ---------- Pestañas ---------- */
@@ -40,6 +40,7 @@ function route(){
   let v=(location.hash||"#incidentes").slice(1); if(!VIEWS.includes(v)) v="incidentes";
 
   if(v==="gestion"&&!S.admin)v="incidentes";
+  if(S.admin&&["reportar","mis-reportes"].includes(v))v="gestion";
   document.querySelectorAll("[data-section]").forEach(s=>s.hidden = s.id!=="view-"+v);
   document.querySelectorAll("nav.tabs a").forEach(a=>{ if(a.dataset.view===v) a.setAttribute("aria-current","page"); else a.removeAttribute("aria-current"); });
 }
@@ -143,8 +144,9 @@ function openDetail(id){
   if(historyOff)historyOff();
   historyOff=S.db.collection('incidentes/'+id+'/historial').onSnapshot(snap=>{
     if(!detail?.isConnected)return;
-    detail.replaceChildren();
+    detail.replaceChildren(h('div',null,h('div',{class:'t',text:fecha(d.creado)}),'Reportado'));
     const docs=snap.docs.map(data).sort((a,b)=>iso(a.fecha).localeCompare(iso(b.fecha)));
+    if(!docs.length&&d.actualizado&&d.actualizado!==d.creado)detail.append(h('div',null,h('div',{class:'t',text:fecha(d.actualizado)}),ESTADOS[d.estado]));
     for(const item of docs)detail.append(h('div',null,h('div',{class:'t',text:fecha(iso(item.fecha))}),ESTADOS[item.estado]+' · '+item.accion));
   },()=>{if(detail?.isConnected)detail.append(h('p',{class:'err',text:'No se pudo cargar el historial.'}));});
 }
@@ -229,6 +231,7 @@ $("#form").addEventListener("submit",async(e)=>{
   const err=$("#r-err"); err.textContent="";
   if(!navigator.onLine){ err.textContent='No hay conexión. Conserva los campos y vuelve a enviar cuando se restablezca.'; return; }
   if(!S.db){ err.textContent="Configuración Firebase pendiente. Para pruebas locales, inicia los emuladores y abre ?mode=emulator."; return; }
+  if(S.admin){err.textContent='La cuenta administrativa solo gestiona reportes.';return;}
   if(S.context.auth.currentUser?.isAnonymous){openAuth();err.textContent="Inicia sesión para enviar el reporte.";return;}
   if(S.readOnly||!S.uid){ err.textContent="No hay una sesión disponible. Recarga la página e inténtalo de nuevo."; return; }
   const titulo=$("#r-titulo").value.trim(), lugar=$("#r-lugar").value.trim(), desc=$("#r-desc").value.trim(), correo=$("#r-correo").value.trim();
@@ -276,6 +279,15 @@ function renderGestion(){
         h('button',{class:'btn ghost',text:'Volver a publicar',onclick:(e)=>adminAction(e,()=>S.service.manage(id,{visibilidad:'publico'},'restaurar'))}),
         h('button',{class:'btn danger',text:'Eliminar definitivamente',onclick:(e)=>adminAction(e,()=>S.service.deleteArchived(id))}))))): [h('div',{class:'empty',text:'Nada retirado.'})]));
 }
+
+function renderAdminGroups(){
+ const filter=$('#admin-state').value,category=$('#admin-category').value,order=$('#admin-order').value;
+ const items=[...(S.all||[])].filter(([id,d])=>d.visibilidad!=='archivo'&&(filter==='todos'||(filter==='abiertos'?!CERRADOS.has(d.estado):d.estado===filter))&&(category==='todos'||d.categoria===category));
+ items.sort((a,b)=>(order==='prioridad'?b[1].confirmaciones-a[1].confirmaciones:0)||(b[1].creado||'').localeCompare(a[1].creado||''));
+ $('#admin-groups').replaceChildren(...Object.entries(ESTADOS).map(([state,label])=>h('section',null,h('h3',{class:'sec-title',text:label}),h('div',{class:'list'},...items.filter(([id,d])=>d.estado===state).map(([id,d])=>card(id,d))))));
+}
+for(const id of ['admin-state','admin-order','admin-category'])$('#'+id).onchange=renderAdminGroups;
+
 async function adminAction(e,operation){
   const btn=e.currentTarget; btn.disabled=true;
   try{await operation();toast('Operación guardada');}catch(error){toast('No se pudo guardar: '+error.message);}
@@ -304,7 +316,7 @@ function watch(query,callback,options={}){listeners.push(query.onSnapshot(option
 async function bind(user){
   const turn=++bindingVersion;
   clearListeners(); closeModal();
-  S.mine.clear();S.uid=user?.uid||null; S.admin=false; S.inc.clear();S.gest.clear();S.votes.clear();S.fotos.clear();S.contactos.clear();S.myVotes={};S.myRev={};S.rev=[];S.arch=[];
+  S.all=new Map();S.mine.clear();S.uid=user?.uid||null; S.admin=false; S.inc.clear();S.gest.clear();S.votes.clear();S.fotos.clear();S.contactos.clear();S.myVotes={};S.myRev={};S.rev=[];S.arch=[];
   $('#badge-admin').hidden=true;$('#admin-content').hidden=true;$('#admin-login').hidden=false;$('#logout').hidden=true;
   $('#rev-list').replaceChildren();$('#arch-list').replaceChildren();$('#notifications').replaceChildren();
   renderMisRevision();renderList();
@@ -313,7 +325,8 @@ async function bind(user){
   const role=await S.db.doc('admins/'+S.uid).get();
   if(turn!==bindingVersion || S.context.auth.currentUser?.uid!==user.uid) return;
   S.admin=role.exists && !user.isAnonymous;
-  $('#tab-gestion').hidden=!S.admin;$('#tab-mine').hidden=user.isAnonymous;
+  $('#tab-gestion').hidden=!S.admin;$('#tab-mine').hidden=user.isAnonymous||S.admin;
+  document.querySelector('a[data-view=reportar]').hidden=S.admin;
   $('#account-notice').hidden=!user.isAnonymous;
   $('#session-button').textContent=user.isAnonymous?'Iniciar sesión':'Cerrar sesión';
   if(S.admin)location.hash='#gestion';
@@ -322,7 +335,7 @@ async function bind(user){
     S.inc=new Map(snap.docs.map(d=>[d.id,data(d)]));S.gest=new Map([...S.inc].map(([id,d])=>[id,d]));
     S.votes=new Map([...S.inc].map(([id,d])=>[id,d.confirmaciones]));S.loaded=true;renderList();refreshDetail();
   });
-  watch(S.db.collection('usuarios/'+S.uid+'/votos'),snap=>{S.myVotes={};for(const d of snap.docs)if(d.data().activo)S.myVotes[d.id]=true;renderList();});
+  watch(S.db.collection('usuarios/'+S.uid+'/votos'),snap=>{S.myVotes={};for(const d of snap.docs)if(d.data().activo)S.myVotes[d.id]=true;renderList();renderMine();refreshDetail();});
   watch(S.db.collection('autores').where('uid','==',S.uid),snap=>{
     // Un autor local todavía sin confirmar no concede permisos en el servidor.
     // Escuchar su padre antes del commit termina el listener con permission-denied.
@@ -335,6 +348,7 @@ async function bind(user){
     },failure));
   },{includeMetadataChanges:true});
   if(S.admin){
+    watch(S.db.collection('incidentes'),snap=>{S.all=new Map(snap.docs.map(d=>[d.id,data(d)]));renderAdminGroups();});
     watch(S.db.collection('incidentes').where('visibilidad','==','revision'),snap=>{S.rev=snap.docs.map(d=>({id:d.id,d:data(d)}));renderGestion();});
     watch(S.db.collection('incidentes').where('visibilidad','==','archivo'),snap=>{S.arch=snap.docs.map(d=>({id:d.id,a:data(d)}));renderGestion();});
     watch(S.db.collection('contactos'),snap=>{S.contactos=new Map(snap.docs.map(d=>[d.id,d.data()]));});
@@ -381,15 +395,23 @@ function zoomPhoto(src,title){
 function openAuth(create=false){
   closeModal();
   const name=h('input',{id:'account-name',autocomplete:'username',required:true});
-  const password=h('input',{id:'account-password',type:'password',autocomplete:create?'new-password':'current-password',minlength:6,required:true});
+  const password=h('input',{id:'account-password',type:'password',autocomplete:create?'new-password':'current-password',minlength:create?8:1,required:true});
+  const nameErr=h('p',{class:'err',id:'name-error',role:'alert'}),passErr=h('p',{class:'err',id:'password-error',role:'alert'});
+  const validate=()=>{const invalid=create&&!/^[a-z0-9][a-z0-9_.-]{2,29}$/i.test(name.value.trim());const short=create&&password.value.length<8;
+    nameErr.textContent=invalid?'Empieza con una letra o número. Usa entre 3 y 30 letras, números, puntos, guiones o guiones bajos.':'';
+    passErr.textContent=short?'La contraseña debe tener al menos 8 caracteres.':'';
+    name.setAttribute('aria-invalid',String(invalid));password.setAttribute('aria-invalid',String(short));return !invalid&&!short;};
+  name.setAttribute('aria-describedby','name-error');password.setAttribute('aria-describedby','password-error');
+  name.oninput=()=>validate();password.oninput=()=>validate();
   const err=h('p',{class:'err',role:'alert'});
   const submit=h('button',{class:'btn signal',type:'submit',text:create?'Crear cuenta':'Entrar'});
-  const form=h('form',{class:'inner',onsubmit:async e=>{e.preventDefault();submit.disabled=true;try{
+  const form=h('form',{class:'inner',novalidate:true,onsubmit:async e=>{e.preventDefault();if(!validate()){(name.getAttribute('aria-invalid')==='true'?name:password).focus();return;}submit.disabled=true;try{
     if(create)await register(S.context.auth,name.value,password.value);else await login(S.context.auth,S.db,name.value,password.value);
-    password.value='';closeModal();
-  }catch(error){err.textContent='No se pudo acceder. Revisa el usuario y la contraseña o si el usuario ya existe.';}finally{submit.disabled=false;}}},h('h2',{text:create?'Crear cuenta':'Iniciar sesión'}),h('p',{text:'Tu usuario no se muestra en los reportes. No uses tu nombre real. Administración puede entrar con su correo.'}),h('label',{for:'account-name',text:'Usuario o correo administrativo'}),name,h('label',{for:'account-password',text:'Contraseña'}),password,err,submit,h('button',{class:'btn ghost',type:'button',text:'Cancelar',onclick:closeModal}),h('button',{class:'btn ghost',type:'button',text:create?'Ya tengo cuenta':'Crear cuenta',onclick:()=>openAuth(!create)}));
+    await bind(S.context.auth.currentUser);password.value='';closeModal();
+  }catch(error){err.textContent=({'auth/user-not-found':'Ese usuario no está registrado.','auth/wrong-password':'La contraseña ingresada es incorrecta.','auth/email-already-in-use':'Ese usuario ya existe.','auth/invalid-credential':'Usuario o contraseña incorrectos.','auth/too-many-requests':'Demasiados intentos. Espera antes de volver a intentar.'})[error.code]||error.message;}finally{submit.disabled=false;}}},h('h2',{text:create?'Crear cuenta':'Iniciar sesión'}),h('p',{text:'Tu usuario no se muestra en los reportes. No uses tu nombre real. Administración puede entrar con su correo.'}),h('label',{for:'account-name',text:create?'Usuario':'Usuario o correo administrativo'}),name,nameErr,h('label',{for:'account-password',text:'Contraseña'}),password,create?h('small',{text:'Mínimo 8 caracteres.'}):null,passErr,err,submit,h('button',{class:'btn ghost',type:'button',text:'Cancelar',onclick:closeModal}),h('button',{class:'btn ghost',type:'button',text:create?'Ya tengo cuenta':'Crear cuenta',onclick:()=>openAuth(!create)}));
   $('#modal-root').replaceChildren(h('div',{class:'overlay'},h('div',{class:'modal auth-modal',role:'dialog','aria-modal':'true','aria-label':create?'Crear cuenta':'Iniciar sesión'},form)));activateModal();name.focus();
 }
+$('#session-button').disabled=true;$('#report-login').disabled=true;
 $('#session-button').onclick=async()=>{if(S.context?.auth.currentUser&&!S.context.auth.currentUser.isAnonymous){await logout(S.context.auth);location.hash='#incidentes';}else openAuth();};
 $('#report-login').onclick=()=>openAuth();
 
@@ -405,6 +427,7 @@ async function start(){
     $('#email-status').textContent=emu?'Correo SIMULADO: no se enviarán mensajes reales.':S.context.notificationsEnabled?'Recibirás un aviso si el proveedor acepta el envío.':'Contacto opcional para un aviso MANUAL. No se envían correos automáticamente.';
     $('#r-correo').disabled=!S.context.contactEnabled;
     await anonymous(S.context.auth);
+    $('#session-button').disabled=false;$('#report-login').disabled=false;
     S.context.auth.onAuthStateChanged(user=>{bind(user).catch(failure);});
   }catch(e){failure(e);}
 }

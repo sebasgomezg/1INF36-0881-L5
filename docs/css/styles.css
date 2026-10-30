@@ -184,3 +184,9 @@ input[type=password]{background:var(--surface);border:1px solid var(--line);bord
 .auth-modal{width:min(500px,100%)}.auth-modal input{width:100%;padding:10px;border:1px solid var(--line);border-radius:8px;background:var(--surface)}
 .code{overflow-wrap:anywhere}.card-foot{flex-wrap:wrap}#mine-list{margin-top:18px}#admin-login{display:none}
 @media(max-width:360px){.list{grid-template-columns:minmax(0,1fr)}nav.tabs{gap:2px}.panel{padding:14px}}
+
+.modal .photo{width:min(100%,400px);aspect-ratio:4/3;margin:0 auto;max-height:32dvh}
+.modal .photo:not(:has(img)){aspect-ratio:auto;height:72px;width:100%}
+.auth-modal input[aria-invalid=true]{border:2px solid var(--danger)}
+.auth-modal input[aria-invalid=false]{border:1px solid var(--line)}
+.auth-modal .err:empty{display:none}
