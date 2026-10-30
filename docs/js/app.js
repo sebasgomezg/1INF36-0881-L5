@@ -1,5 +1,5 @@
 import { initialize } from './firebase-init.js';
-import { anonymous, login, logout } from './auth.js';
+import { anonymous, login, logout, register } from './auth.js';
 import { CampusService } from './firestore-service.js';
 import { retryNotification, notificationLabels, manualNotice } from './notifications.js';
 
@@ -12,7 +12,7 @@ const ESTADOS = {reportado:"Reportado",revisando:"En revisión",en_atencion:"En 
 const CERRADOS = new Set(["resuelto","descartado"]);
 
 const S = { db:null, user:null, uid:null, admin:false, canWrite:null, readOnly:false,
-  inc:new Map(), gest:new Map(), votes:new Map(), myVotes:{}, fotos:new Map(),
+  mine:new Map(), inc:new Map(), gest:new Map(), votes:new Map(), myVotes:{}, fotos:new Map(),
   rev:[], arch:[], contactos:new Map(), myRev:null, foto:null, mini:null, loaded:false };
 
 const $ = s => document.querySelector(s);
@@ -29,16 +29,17 @@ function h(tag, attrs, ...kids){
 function toast(msg){ const r=$("#toast-root"); r.replaceChildren(h("div",{class:"toast",role:"status",text:msg})); clearTimeout(toast.t); toast.t=setTimeout(()=>r.replaceChildren(),2800); }
 function fecha(iso){ if(!iso) return ""; const d=new Date(iso); return d.toLocaleDateString("es-PE",{day:"2-digit",month:"short",year:"numeric"})+" · "+d.toLocaleTimeString("es-PE",{hour:"2-digit",minute:"2-digit"}); }
 function nuevoId(){ const t=Date.now().toString(36).toUpperCase().slice(-5); const r=Math.random().toString(36).toUpperCase().slice(2,5); return "AV-"+t+r; }
-function incidentData(id){ return S.inc.get(id)||S.rev.find(r=>r.id===id)?.d||S.arch.find(r=>r.id===id)?.a; }
+function incidentData(id){ return S.inc.get(id)||S.mine.get(id)||S.rev.find(r=>r.id===id)?.d||S.arch.find(r=>r.id===id)?.a; }
 function estadoDe(id){ return (S.gest.get(id)||incidentData(id)||{}).estado || "reportado"; }
 function votosDe(id){ return S.votes.get(id)||0; }
 function pill(est){ return h("span",{class:"pill st-"+est,text:ESTADOS[est]||est}); }
 
 /* ---------- Pestañas ---------- */
-const VIEWS=["incidentes","reportar","como-funciona","gestion"];
+const VIEWS=["incidentes","reportar","como-funciona","gestion","mis-reportes"];
 function route(){
   let v=(location.hash||"#incidentes").slice(1); if(!VIEWS.includes(v)) v="incidentes";
 
+  if(v==="gestion"&&!S.admin)v="incidentes";
   document.querySelectorAll("[data-section]").forEach(s=>s.hidden = s.id!=="view-"+v);
   document.querySelectorAll("nav.tabs a").forEach(a=>{ if(a.dataset.view===v) a.setAttribute("aria-current","page"); else a.removeAttribute("aria-current"); });
 }
@@ -105,16 +106,20 @@ function card(id,d){
 }
 
 /* ---------- Detalle ---------- */
-function closeModal(){ $("#modal-root").replaceChildren(); document.removeEventListener("keydown",escClose); if(returnFocus?.isConnected)returnFocus.focus(); }
+function closeModal(){ detailId=null;if(historyOff){historyOff();historyOff=null;} $("#modal-root").replaceChildren(); document.removeEventListener("keydown",escClose); if(returnFocus?.isConnected)returnFocus.focus(); }
 function escClose(e){ if(e.key==="Escape") closeModal(); }
 async function getFoto(path){
   if(S.fotos.has(path)) return S.fotos.get(path);
   try{ const s=await S.db.doc(path).get(); const v=s.exists ? (s.data().data||null) : null; S.fotos.set(path,v); return v; }catch(e){ toast('No se pudo cargar la fotografía.'); return null; }
 }
+let historyOff=null;let detailId=null;
+function refreshDetail(id){if(detailId&&(!id||id===detailId)&&!S.admin)openDetail(detailId);}
 function openDetail(id){
+  detailId=id;
   const d=incidentData(id); if(!d) return;
   const g=S.gest.get(id)||incidentData(id)||{};
   const photo=h("div",{class:"photo"}, d.mini? h("img",{src:d.mini,alt:"Foto del incidente"}) : h("p",{class:"meta",style:"padding:24px",text:"Sin foto"}));
+  if(d.tieneFoto){photo.tabIndex=0;photo.setAttribute('role','button');photo.setAttribute('aria-label','Ampliar fotografía');const zoom=async()=>{const src=await getFoto('fotos/'+id);if(src)zoomPhoto(src,d.titulo);};photo.onclick=zoom;photo.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();zoom();}};}
   if(d.tieneFoto) getFoto("fotos/"+id).then(src=>{ if(src){ const im=photo.querySelector("img"); if(im) im.src=src; } });
 
   const tl=h("div",{class:"timeline"},
@@ -135,11 +140,13 @@ function openDetail(id){
   $("#modal-root").replaceChildren(overlay);
   activateModal();
   const detail=$('#modal-root .timeline');
-  S.db.collection('incidentes/'+id+'/historial').get().then(snap=>{
+  if(historyOff)historyOff();
+  historyOff=S.db.collection('incidentes/'+id+'/historial').onSnapshot(snap=>{
     if(!detail?.isConnected)return;
+    detail.replaceChildren();
     const docs=snap.docs.map(data).sort((a,b)=>iso(a.fecha).localeCompare(iso(b.fecha)));
     for(const item of docs)detail.append(h('div',null,h('div',{class:'t',text:fecha(iso(item.fecha))}),ESTADOS[item.estado]+' · '+item.accion));
-  }).catch(()=>{if(detail?.isConnected)detail.append(h('p',{class:'err',text:'No se pudo cargar el historial.'}));});
+  },()=>{if(detail?.isConnected)detail.append(h('p',{class:'err',text:'No se pudo cargar el historial.'}));});
 }
 function adminBox(id){
   const g=S.gest.get(id)||incidentData(id)||{};
@@ -187,6 +194,7 @@ async function retirar(id){
 /* ---------- Votos ---------- */
 const voting = new Set();
 async function toggleVote(id){
+  if(S.context.auth.currentUser?.isAnonymous){openAuth();return;}
   if(voting.has(id)||!S.uid||!S.service) return;
   voting.add(id);
   try{ await S.service.vote(id); }catch(e){ toast('No se pudo registrar tu confirmación: '+e.message); }
@@ -221,6 +229,7 @@ $("#form").addEventListener("submit",async(e)=>{
   const err=$("#r-err"); err.textContent="";
   if(!navigator.onLine){ err.textContent='No hay conexión. Conserva los campos y vuelve a enviar cuando se restablezca.'; return; }
   if(!S.db){ err.textContent="Configuración Firebase pendiente. Para pruebas locales, inicia los emuladores y abre ?mode=emulator."; return; }
+  if(S.context.auth.currentUser?.isAnonymous){openAuth();err.textContent="Inicia sesión para enviar el reporte.";return;}
   if(S.readOnly||!S.uid){ err.textContent="No hay una sesión disponible. Recarga la página e inténtalo de nuevo."; return; }
   const titulo=$("#r-titulo").value.trim(), lugar=$("#r-lugar").value.trim(), desc=$("#r-desc").value.trim(), correo=$("#r-correo").value.trim();
   if(titulo.length<5){ err.textContent="Describe el problema en una frase (mínimo 5 caracteres)."; $("#r-titulo").focus(); return; }
@@ -295,7 +304,7 @@ function watch(query,callback,options={}){listeners.push(query.onSnapshot(option
 async function bind(user){
   const turn=++bindingVersion;
   clearListeners(); closeModal();
-  S.uid=user?.uid||null; S.admin=false; S.inc.clear();S.gest.clear();S.votes.clear();S.fotos.clear();S.contactos.clear();S.myVotes={};S.myRev={};S.rev=[];S.arch=[];
+  S.mine.clear();S.uid=user?.uid||null; S.admin=false; S.inc.clear();S.gest.clear();S.votes.clear();S.fotos.clear();S.contactos.clear();S.myVotes={};S.myRev={};S.rev=[];S.arch=[];
   $('#badge-admin').hidden=true;$('#admin-content').hidden=true;$('#admin-login').hidden=false;$('#logout').hidden=true;
   $('#rev-list').replaceChildren();$('#arch-list').replaceChildren();$('#notifications').replaceChildren();
   renderMisRevision();renderList();
@@ -304,11 +313,14 @@ async function bind(user){
   const role=await S.db.doc('admins/'+S.uid).get();
   if(turn!==bindingVersion || S.context.auth.currentUser?.uid!==user.uid) return;
   S.admin=role.exists && !user.isAnonymous;
+  $('#tab-gestion').hidden=!S.admin;$('#tab-mine').hidden=user.isAnonymous;
+  $('#account-notice').hidden=!user.isAnonymous;
+  $('#session-button').textContent=user.isAnonymous?'Iniciar sesión':'Cerrar sesión';
+  if(S.admin)location.hash='#gestion';
   $('#badge-admin').hidden=!S.admin;$('#admin-content').hidden=!S.admin;$('#admin-login').hidden=S.admin;$('#logout').hidden=!S.admin;
   watch(S.db.collection('incidentes').where('visibilidad','==','publico'),snap=>{
-    if(S.context.mode==='production'&&!snap.metadata.fromCache)banner(h('div',{class:'notice'},h('strong',{text:'Firebase · etica-cec4a. '}),'Autenticación y lectura confirmadas. Los reportes solo se confirman después de guardar.'));
     S.inc=new Map(snap.docs.map(d=>[d.id,data(d)]));S.gest=new Map([...S.inc].map(([id,d])=>[id,d]));
-    S.votes=new Map([...S.inc].map(([id,d])=>[id,d.confirmaciones]));S.loaded=true;renderList();
+    S.votes=new Map([...S.inc].map(([id,d])=>[id,d.confirmaciones]));S.loaded=true;renderList();refreshDetail();
   });
   watch(S.db.collection('usuarios/'+S.uid+'/votos'),snap=>{S.myVotes={};for(const d of snap.docs)if(d.data().activo)S.myVotes[d.id]=true;renderList();});
   watch(S.db.collection('autores').where('uid','==',S.uid),snap=>{
@@ -317,6 +329,8 @@ async function bind(user){
     if(snap.metadata.fromCache || snap.metadata.hasPendingWrites) return;
     for(const off of personal)off();personal=[]; S.myRev={};renderMisRevision();
     for(const author of snap.docs) personal.push(S.db.doc('incidentes/'+author.id).onSnapshot(doc=>{
+      if(doc.exists){S.mine.set(doc.id,data(doc));}else S.mine.delete(author.id);
+      renderMine();refreshDetail(author.id);
       if(doc.exists&&doc.data().visibilidad==='revision')S.myRev[doc.id]=data(doc);else delete S.myRev[author.id];renderMisRevision();
     },failure));
   },{includeMetadataChanges:true});
@@ -355,6 +369,30 @@ document.addEventListener('keydown',e=>{
   if(e.shiftKey&&document.activeElement===focus[0]){e.preventDefault();focus.at(-1).focus();}
   else if(!e.shiftKey&&document.activeElement===focus.at(-1)){e.preventDefault();focus[0].focus();}
 });
+
+function renderMine(){
+  $('#mine-list').replaceChildren(...[...S.mine].map(([id,d])=>card(id,d)));
+}
+function zoomPhoto(src,title){
+  const root=h('div',{class:'overlay zoom-overlay'},h('div',{class:'modal zoom-card',role:'dialog','aria-modal':'true','aria-label':'Fotografía ampliada'},h('img',{src,alt:title}),h('div',{class:'inner'},h('button',{class:'btn ghost',text:'Cerrar',onclick:()=>{root.remove();document.removeEventListener('keydown',escape);}}))));
+  const escape=e=>{if(e.key==='Escape'){e.stopImmediatePropagation();root.remove();document.removeEventListener('keydown',escape,true);}};
+  document.addEventListener('keydown',escape,true);root.querySelector('button').onclick=()=>{root.remove();document.removeEventListener('keydown',escape,true);};document.body.append(root);root.querySelector('button').focus();
+}
+function openAuth(create=false){
+  closeModal();
+  const name=h('input',{id:'account-name',autocomplete:'username',required:true});
+  const password=h('input',{id:'account-password',type:'password',autocomplete:create?'new-password':'current-password',minlength:6,required:true});
+  const err=h('p',{class:'err',role:'alert'});
+  const submit=h('button',{class:'btn signal',type:'submit',text:create?'Crear cuenta':'Entrar'});
+  const form=h('form',{class:'inner',onsubmit:async e=>{e.preventDefault();submit.disabled=true;try{
+    if(create)await register(S.context.auth,name.value,password.value);else await login(S.context.auth,S.db,name.value,password.value);
+    password.value='';closeModal();
+  }catch(error){err.textContent='No se pudo acceder. Revisa el usuario y la contraseña o si el usuario ya existe.';}finally{submit.disabled=false;}}},h('h2',{text:create?'Crear cuenta':'Iniciar sesión'}),h('p',{text:'Tu usuario no se muestra en los reportes. No uses tu nombre real. Administración puede entrar con su correo.'}),h('label',{for:'account-name',text:'Usuario o correo administrativo'}),name,h('label',{for:'account-password',text:'Contraseña'}),password,err,submit,h('button',{class:'btn ghost',type:'button',text:'Cancelar',onclick:closeModal}),h('button',{class:'btn ghost',type:'button',text:create?'Ya tengo cuenta':'Crear cuenta',onclick:()=>openAuth(!create)}));
+  $('#modal-root').replaceChildren(h('div',{class:'overlay'},h('div',{class:'modal auth-modal',role:'dialog','aria-modal':'true','aria-label':create?'Crear cuenta':'Iniciar sesión'},form)));activateModal();name.focus();
+}
+$('#session-button').onclick=async()=>{if(S.context?.auth.currentUser&&!S.context.auth.currentUser.isAnonymous){await logout(S.context.auth);location.hash='#incidentes';}else openAuth();};
+$('#report-login').onclick=()=>openAuth();
+
 async function start(){
   route();renderList();
   try{
@@ -364,7 +402,6 @@ async function start(){
     if(!S.context.enabled){S.loaded=true;renderList();banner(h('div',{class:'notice'},h('strong',{text:'Configuración Firebase pendiente. '}),'La interfaz está disponible. No hay persistencia activa. Para datos ficticios inicia los emuladores y abre ?mode=emulator.'));return;}
     S.db=S.context.db;
     const emu=S.context.mode==='emulator';
-    banner(h('div',{class:'notice'},h('strong',{text:emu?'EMULADORES LOCALES · DATOS FICTICIOS. ':'Conectando con Firebase… '}),emu?'Los datos se comparten solo con clientes de este emulador. Los correos son SIMULADOS.':'Esperando verificar autenticación y lectura del proyecto configurado.'));
     $('#email-status').textContent=emu?'Correo SIMULADO: no se enviarán mensajes reales.':S.context.notificationsEnabled?'Recibirás un aviso si el proveedor acepta el envío.':'Contacto opcional para un aviso MANUAL. No se envían correos automáticamente.';
     $('#r-correo').disabled=!S.context.contactEnabled;
     await anonymous(S.context.auth);

@@ -2,6 +2,7 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     function signed() { return request.auth != null; }
+    function member(){return signed() && request.auth.token.firebase.sign_in_provider == 'password';}
     function admin() {
       return signed() && request.auth.token.firebase.sign_in_provider == 'password'
         && exists(/databases/$(database)/documents/admins/$(request.auth.uid));
@@ -33,13 +34,13 @@ service cloud.firestore {
     function voteChange(id) {
       let before = voteActiveBefore(id);
       let after = getAfter(/databases/$(database)/documents/usuarios/$(request.auth.uid)/votos/$(id)).data.activo;
-      return signed() && resource.data.visibilidad == 'publico' && after != before
+      return member() && resource.data.visibilidad == 'publico' && after != before
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['confirmaciones'])
         && request.resource.data.confirmaciones == resource.data.confirmaciones + (after ? 1 : -1);
     }
     match /incidentes/{id} {
       allow get, list: if resource.data.visibilidad == 'publico' || admin() || owner(id);
-      allow create: if signed() && incident(request.resource.data, id)
+      allow create: if member() && incident(request.resource.data, id)
         && getAfter(/databases/$(database)/documents/autores/$(id)).data.uid == request.auth.uid
         && request.resource.data.visibilidad in ['publico','revision']
         && (!getAfter(/databases/$(database)/documents/autores/$(id)).data.persona || request.resource.data.visibilidad == 'revision')
@@ -72,7 +73,7 @@ service cloud.firestore {
     }
     match /autores/{id} {
       allow read: if signed() && (resource.data.uid == request.auth.uid || admin());
-      allow create: if signed() && request.resource.data.keys().hasOnly(['uid','persona','noIdentifica'])
+      allow create: if member() && request.resource.data.keys().hasOnly(['uid','persona','noIdentifica'])
         && request.resource.data.persona is bool && request.resource.data.noIdentifica == true
         && request.resource.data.uid == request.auth.uid
         && getAfter(/databases/$(database)/documents/incidentes/$(id)).data.version == 0;
@@ -81,7 +82,7 @@ service cloud.firestore {
     }
     match /fotos/{id} {
       allow read: if readable(id);
-      allow create: if signed() && getAfter(/databases/$(database)/documents/autores/$(id)).data.uid == request.auth.uid
+      allow create: if member() && getAfter(/databases/$(database)/documents/autores/$(id)).data.uid == request.auth.uid
         && !exists(/databases/$(database)/documents/incidentes/$(id))
         && getAfter(/databases/$(database)/documents/incidentes/$(id)).data.tieneFoto == true
         && request.resource.data.keys().hasOnly(['data']) && request.resource.data.data is string
@@ -91,7 +92,7 @@ service cloud.firestore {
     }
     match /contactos/{id} {
       allow read: if signed() && (resource.data.uid == request.auth.uid || admin());
-      allow create: if signed() && request.resource.data.keys().hasOnly(['uid','correo','consentimiento','creado'])
+      allow create: if member() && request.resource.data.keys().hasOnly(['uid','correo','consentimiento','creado'])
         && request.resource.data.uid == request.auth.uid && request.resource.data.consentimiento == true
         && request.resource.data.correo is string && request.resource.data.correo.size() <= 120
         && request.resource.data.correo.matches('[^\\s@]+@[^\\s@]+[.][^\\s@]+')
@@ -104,7 +105,7 @@ service cloud.firestore {
     }
     match /usuarios/{uid}/votos/{id} {
       allow read: if signed() && (request.auth.uid == uid || admin());
-      allow create, update: if signed() && request.auth.uid == uid
+      allow create, update: if member() && request.auth.uid == uid
         && request.resource.data.keys().hasOnly(['incidente','activo']) && request.resource.data.incidente == id
         && request.resource.data.activo is bool && (!exists(/databases/$(database)/documents/usuarios/$(uid)/votos/$(id)) ? request.resource.data.activo == true : request.resource.data.activo != resource.data.activo)
         && get(/databases/$(database)/documents/incidentes/$(id)).data.visibilidad == 'publico'

@@ -16,14 +16,14 @@
       <a href="#incidentes" data-view="incidentes">Incidentes</a>
       <a href="#reportar" data-view="reportar" class="cta">Reportar</a>
       <a href="#como-funciona" data-view="como-funciona">Cómo funciona</a>
-      <a href="#gestion" data-view="gestion" id="tab-gestion">Gestión</a>
-    </nav>
+      <a href="#gestion" data-view="gestion" id="tab-gestion" hidden>Gestión</a>
+    <a href="#mis-reportes" data-view="mis-reportes" id="tab-mine" hidden>Mis reportes</a><button class="btn ghost" id="session-button" type="button">Iniciar sesión</button></nav>
     <span class="badge-admin" id="badge-admin" hidden>Administrador</span>
   </div>
 </header>
 
 <main class="wrap">
-  <div id="banner"></div>
+  <div id="banner" role="alert"></div><section id="view-mis-reportes" data-section hidden><h2>Mis reportes</h2><div id="mine-list" class="list"></div></section>
 
   <!-- VISTA: INCIDENTES -->
   <section id="view-incidentes" data-section>
@@ -56,7 +56,7 @@
     <div class="form-grid">
       <form class="panel" id="form" novalidate>
         <h2>Reportar un incidente</h2>
-        <p class="sub">Tu reporte se publica sin tu nombre. Antes de crear uno nuevo, revisa si ya existe y confírmalo.</p>
+        <div class="notice" id="account-notice">Necesitas una cuenta para reportar y confirmar. <button type="button" class="btn ghost" id="report-login">Iniciar sesión / Crear cuenta</button></div><p class="sub">Tu reporte se publica sin tu nombre. Antes de crear uno nuevo, revisa si ya existe y confírmalo.</p>
 
         <div class="f"><label for="r-titulo">¿Qué pasa?</label>
           <input type="text" id="r-titulo" maxlength="80" placeholder="Ej.: Tomacorriente sin energía junto a la ventana">
@@ -133,7 +133,7 @@
       <p><span class="pill st-reportado">Reportado</span> recién registrado · <span class="pill st-revisando">En revisión</span> la administración lo está evaluando · <span class="pill st-en_atencion">En atención</span> hay una acción en curso · <span class="pill st-resuelto">Resuelto</span> se solucionó · <span class="pill st-descartado">Descartado</span> no procede, con la razón publicada.</p>
 
       <h3>Aviso de privacidad</h3>
-      <p class="muted">Se recoge lo mínimo necesario. Una identidad anónima del navegador vincula reportes y confirmaciones. Puede cambiar si borras los datos del navegador o usas otro dispositivo. No se promete anonimato absoluto.</p>
+      <p class="muted">Se recoge lo mínimo necesario. Tu cuenta vincula reportes y confirmaciones. El usuario y la contraseña no se publican. Usa un seudónimo, sin datos personales. No se promete anonimato absoluto.</p>
       <div class="tbl"><table class="priv">
         <tr><th>Dato</th><th>Para qué</th><th>Quién lo ve</th></tr>
         <tr><td>Foto, zona, lugar, detalle y fecha</td><td>Registrar y atender el incidente</td><td>Público</td></tr>

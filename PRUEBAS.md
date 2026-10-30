@@ -48,3 +48,16 @@ Windows, Node 24.13.1, Java 24.0.2, CLI 15.34.1, Firestore Emulator 1.22.0, Fire
 ## Versiones publicadas
 
 Rama main, commit inicial de aplicación 5cd0c61 y corrección del listener e5b75b4, ambos enviados a origin. El commit de cierre actualiza únicamente la evidencia de publicación y los pendientes. Las credenciales .admin-credential.local, copias de reglas y capturas no están versionadas.
+
+
+## Actualización 30 de octubre: cuentas y fotografías
+
+La navegación pública usa Iniciar sesión con popup de acceso/registro. Los estudiantes eligen un seudónimo y contraseña; Firebase Auth utiliza internamente un identificador de correo técnico @usuarios.avisa.invalid, sin solicitar un correo real. Las contraseñas se gestionan exclusivamente mediante Authentication y no se guardan en Firestore. La cuenta administrativa conserva su correo existente. No hay recuperación por correo para seudónimos sin dirección real.
+
+Los visitantes consultan reportes; registrar y confirmar exige cuenta también en las reglas. El registro vincula la sesión anónima actual para preservar sus reportes. Mis reportes reúne publicaciones, pendientes y retirados propios, con detalle e historial. Las suscripciones actualizan tarjetas y detalles de estudiantes. No se publican usuarios en los incidentes.
+
+Se quitaron los avisos técnicos de conexión exitosa. Se conserva la apariencia, con marco 4:3 para fotos del detalle, object-fit:contain y visor superpuesto responsive con Cerrar. Las tarjetas mantienen miniaturas cuadradas.
+
+Pruebas de esta actualización: npm test 13/13 y reglas en emulador 9/9. Prueba real local de cuenta nueva, reporte, Mis reportes, persistencia, acceso administrativo y limpieza correcta. La comprobación con fotos y desde Pages se registra en el cierre de la sesión; los resultados históricos anteriores no validan por sí solos este nuevo flujo.
+
+Los avisos automáticos siguen sin desplegarse por Spark; se conserva el borrador manual consentido. No se habilitan servicios de pago.

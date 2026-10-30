@@ -12,7 +12,7 @@ before(async()=>{
 });
 after(async()=>{await env?.cleanup();});
 beforeEach(async()=>{await env.clearFirestore();});
-const db = uid => env.authenticatedContext(uid,{firebase:{sign_in_provider:uid==='admin'?'password':'anonymous'}}).firestore();
+const db = uid => env.authenticatedContext(uid,{firebase:{sign_in_provider:'password'}}).firestore();
 const input = ()=>({titulo:'Tomacorriente dañado',categoria:'Electricidad y enchufes',zona:'Pabellón V',lugar:'V204',descripcion:'Sin energía',mini:null});
 // Adaptador modular para ejecutar el MISMO servicio que consume el navegador.
 function compat(db){
@@ -97,4 +97,9 @@ test('reintentos solo autorizados, sin cambiar destinatario o contenido',async()
   await assertFails(updateDoc(doc(db('a'),'notificaciones/retry'),{estado:'pendiente',reintentos:1}));
   await assertFails(updateDoc(doc(db('admin'),'notificaciones/retry'),{estado:'pendiente',reintentos:1,destinatario:'otra@campus.test'}));
   await assertSucceeds(updateDoc(doc(db('admin'),'notificaciones/retry'),{estado:'pendiente',reintentos:1}));
+});
+
+test('visitante anónimo no puede crear reportes sin cuenta',async()=>{
+ const guest=env.authenticatedContext('guest',{firebase:{sign_in_provider:'anonymous'}}).firestore();
+ await assertFails(setDoc(doc(guest,'autores/guest-report'),{uid:'guest',persona:false,noIdentifica:true}));
 });

@@ -176,3 +176,11 @@ footer.credits b{color:var(--fg)}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 
 input[type=password]{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 10px}
+
+.modal .photo{aspect-ratio:4/3;max-height:none;overflow:hidden;cursor:zoom-in}
+.modal .photo img{width:100%;height:100%;max-height:none;object-fit:contain}
+.zoom-overlay{z-index:30;align-items:center}.zoom-card{width:min(1100px,96vw);max-height:94dvh;display:flex;flex-direction:column;border:1px solid var(--line)}
+.zoom-card>img{width:100%;min-height:0;max-height:80dvh;object-fit:contain;background:var(--surface-2)}
+.auth-modal{width:min(500px,100%)}.auth-modal input{width:100%;padding:10px;border:1px solid var(--line);border-radius:8px;background:var(--surface)}
+.code{overflow-wrap:anywhere}.card-foot{flex-wrap:wrap}#mine-list{margin-top:18px}#admin-login{display:none}
+@media(max-width:360px){.list{grid-template-columns:minmax(0,1fr)}nav.tabs{gap:2px}.panel{padding:14px}}

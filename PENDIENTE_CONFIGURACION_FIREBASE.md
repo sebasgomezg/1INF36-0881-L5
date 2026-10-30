@@ -29,3 +29,16 @@ No hay bloqueos de permisos ni pasos de configuración pendientes para usar el s
 - Eliminar el contacto después del envío efectivo y revisar manualmente la conservación máxima de 30 días.
 
 No faltan valores de configuración web ni habilitación de proveedores. Las credenciales administrativas no deben incorporarse al repositorio.
+
+
+## Actualización 30 de octubre: cuentas y fotografías
+
+La navegación pública usa Iniciar sesión con popup de acceso/registro. Los estudiantes eligen un seudónimo y contraseña; Firebase Auth utiliza internamente un identificador de correo técnico @usuarios.avisa.invalid, sin solicitar un correo real. Las contraseñas se gestionan exclusivamente mediante Authentication y no se guardan en Firestore. La cuenta administrativa conserva su correo existente. No hay recuperación por correo para seudónimos sin dirección real.
+
+Los visitantes consultan reportes; registrar y confirmar exige cuenta también en las reglas. El registro vincula la sesión anónima actual para preservar sus reportes. Mis reportes reúne publicaciones, pendientes y retirados propios, con detalle e historial. Las suscripciones actualizan tarjetas y detalles de estudiantes. No se publican usuarios en los incidentes.
+
+Se quitaron los avisos técnicos de conexión exitosa. Se conserva la apariencia, con marco 4:3 para fotos del detalle, object-fit:contain y visor superpuesto responsive con Cerrar. Las tarjetas mantienen miniaturas cuadradas.
+
+Pruebas de esta actualización: npm test 13/13 y reglas en emulador 9/9. Prueba real local de cuenta nueva, reporte, Mis reportes, persistencia, acceso administrativo y limpieza correcta. La comprobación con fotos y desde Pages se registra en el cierre de la sesión; los resultados históricos anteriores no validan por sí solos este nuevo flujo.
+
+Los avisos automáticos siguen sin desplegarse por Spark; se conserva el borrador manual consentido. No se habilitan servicios de pago.

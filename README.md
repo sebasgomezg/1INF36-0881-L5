@@ -97,3 +97,16 @@ Para actualizar: modificar archivos, ejecutar las pruebas pertinentes, revisar q
 Si se cambian reglas o índices, revisar primero la versión remota y ejecutar las pruebas antes de `npx firebase deploy --only firestore --project etica-cec4a`. Este comando no publica Functions ni Hosting. Los filtros y orden se resuelven en memoria, por lo que no se requieren índices compuestos adicionales. El índice de grupo de votos y las exclusiones están en firestore.indexes.json.
 
 `prototipo/Avisa Campus.html` conserva íntegramente el original como referencia histórica; no es el punto de entrada publicado. Ver [pendientes](PENDIENTE_CONFIGURACION_FIREBASE.md) y [evidencia de pruebas](PRUEBAS.md).
+
+
+## Actualización 30 de octubre: cuentas y fotografías
+
+La navegación pública usa Iniciar sesión con popup de acceso/registro. Los estudiantes eligen un seudónimo y contraseña; Firebase Auth utiliza internamente un identificador de correo técnico @usuarios.avisa.invalid, sin solicitar un correo real. Las contraseñas se gestionan exclusivamente mediante Authentication y no se guardan en Firestore. La cuenta administrativa conserva su correo existente. No hay recuperación por correo para seudónimos sin dirección real.
+
+Los visitantes consultan reportes; registrar y confirmar exige cuenta también en las reglas. El registro vincula la sesión anónima actual para preservar sus reportes. Mis reportes reúne publicaciones, pendientes y retirados propios, con detalle e historial. Las suscripciones actualizan tarjetas y detalles de estudiantes. No se publican usuarios en los incidentes.
+
+Se quitaron los avisos técnicos de conexión exitosa. Se conserva la apariencia, con marco 4:3 para fotos del detalle, object-fit:contain y visor superpuesto responsive con Cerrar. Las tarjetas mantienen miniaturas cuadradas.
+
+Pruebas de esta actualización: npm test 13/13 y reglas en emulador 9/9. Prueba real local de cuenta nueva, reporte, Mis reportes, persistencia, acceso administrativo y limpieza correcta. La comprobación con fotos y desde Pages se registra en el cierre de la sesión; los resultados históricos anteriores no validan por sí solos este nuevo flujo.
+
+Los avisos automáticos siguen sin desplegarse por Spark; se conserva el borrador manual consentido. No se habilitan servicios de pago.

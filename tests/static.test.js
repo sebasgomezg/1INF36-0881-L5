@@ -7,7 +7,7 @@ test('frontend conserva estilos y controles sin dependencia del anfitrión anter
   assert.doesNotMatch(html+app,/window\.claude|claude\.use|claude\.ai|localStorage/);
   for(const id of ['r-titulo','r-cat','r-zona','r-lugar','r-desc','r-foto','r-norostros','r-persona','r-correo','r-consent','f-orden','f-estado','f-cat','view-gestion'])assert.ok(html.includes(`id="${id}"`));
   const original=await readFile('prototipo/Avisa Campus.html','utf8');const css=await readFile('docs/css/styles.css','utf8');
-  for(const match of original.matchAll(/<style>([\s\S]*?)<\/style>/g))assert.ok(css.includes(match[1]));
+  for(const match of original.matchAll(/<style>([\s\S]*?)<\/style>/g))assert.ok(css.replaceAll('\r','').includes(match[1].replaceAll('\r','')));
 });
 test('recursos propios usan rutas relativas y existen',async()=>{
   const html=await readFile('docs/index.html','utf8');
